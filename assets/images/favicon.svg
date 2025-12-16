@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="prime-favicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <style>
+      .shield-outline { fill: none; stroke: #002fff; stroke-width: 2.5; }
+      .coins { fill: #ffd700; stroke: #daa520; stroke-width: 1.2; }
+      .plant { fill: #228b22; }
+    </style>
+  </defs>
+  
+  <!-- Background circle for better visibility -->
+  <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+  
+  <!-- Shield Shape (scaled down) -->
+  <path class="shield-outline" d="M 50 10 L 62 12 L 70 25 L 70 40 L 62 50 L 50 55 L 38 50 L 30 40 L 30 25 L 38 12 Z"/>
+  
+  <!-- Three Coins Stack (scaled down) -->
+  <!-- Bottom Coin -->
+  <circle class="coins" cx="50" cy="45" r="5"/>
+  <!-- Middle Coin -->
+  <circle class="coins" cx="50" cy="40" r="5"/>
+  <!-- Top Coin -->
+  <circle class="coins" cx="50" cy="35" r="5"/>
+  
+  <!-- Coin Highlights -->
+  <ellipse cx="50" cy="45" rx="3" ry="1.2" fill="#ffed4e" opacity="0.6"/>
+  <ellipse cx="50" cy="40" rx="3" ry="1.2" fill="#ffed4e" opacity="0.6"/>
+  <ellipse cx="50" cy="35" rx="3" ry="1.2" fill="#ffed4e" opacity="0.6"/>
+  
+  <!-- Plant/Sprout (scaled down) -->
+  <!-- Stem -->
+  <line x1="50" y1="32" x2="50" y2="28" stroke="#228b22" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Left Leaf -->
+  <path class="plant" d="M 50 30 L 46 25 L 45 27 L 49 28 Z"/>
+  <ellipse class="plant" cx="45.5" cy="25.5" rx="1.5" ry="2.5"/>
+  <!-- Right Leaf -->
+  <path class="plant" d="M 50 30 L 54 25 L 55 27 L 51 28 Z"/>
+  <ellipse class="plant" cx="54.5" cy="25.5" rx="1.5" ry="2.5"/>
+</svg>

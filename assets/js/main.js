@@ -108,72 +108,99 @@ function toggleFilters() {
 function filterTable() {
     const searchInput = document.getElementById('searchInput');
     const table = document.getElementById('customersTable');
-    const rows = table.querySelectorAll('tbody tr');
-    const searchTerm = searchInput.value.toLowerCase();
+    if (!table) return;
     
-    // Get selected status filters
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    // Get selected status filters (if they exist)
     const statusFilters = Array.from(document.querySelectorAll('.status-filter:checked')).map(cb => cb.value);
     
-    // Get sort option
-    const sortBy = document.getElementById('sortBy').value;
+    // Get sort option (if it exists)
+    const sortByEl = document.getElementById('sortBy');
+    const sortBy = sortByEl ? sortByEl.value : '';
     
     let visibleRows = [];
+    let hiddenRows = [];
     
     rows.forEach(row => {
         const cells = row.querySelectorAll('td');
         if (cells.length === 0) return;
         
-        const name = cells[1]?.textContent.toLowerCase() || '';
-        const loanId = cells[2]?.textContent.toLowerCase() || '';
-        const email = cells[3]?.textContent.toLowerCase() || '';
-        const account = cells[4]?.textContent.toLowerCase() || '';
+        // New table structure: Office, Credit Account, Customer Account, Date, etc.
+        const office = cells[0]?.textContent.toLowerCase() || '';
+        const creditAccount = cells[1]?.textContent.toLowerCase() || '';
+        const customerAccount = cells[2]?.textContent.toLowerCase() || '';
+        const customerName = cells[8]?.textContent.toLowerCase() || '';
+        const phone = cells[15]?.textContent.toLowerCase() || '';
+        const address = cells[16]?.textContent.toLowerCase() || '';
         
-        // Get status
-        const statusElement = row.querySelector('.status');
-        const status = statusElement ? statusElement.textContent.toLowerCase().trim() : '';
-        
-        // Check search term
+        // Check search term against all searchable fields
         const matchesSearch = !searchTerm || 
-            name.includes(searchTerm) || 
-            loanId.includes(searchTerm) || 
-            email.includes(searchTerm) || 
-            account.includes(searchTerm);
+            office.includes(searchTerm) || 
+            creditAccount.includes(searchTerm) || 
+            customerAccount.includes(searchTerm) ||
+            customerName.includes(searchTerm) ||
+            phone.includes(searchTerm) ||
+            address.includes(searchTerm);
         
-        // Check status filter
-        const matchesStatus = statusFilters.length === 0 || 
-            (status.includes('overdue') && statusFilters.includes('overdue')) ||
-            (status.includes('pending') && statusFilters.includes('pending')) ||
-            (status.includes('progress') && statusFilters.includes('progress'));
+        // Status filter (if filters panel exists)
+        const matchesStatus = statusFilters.length === 0;
         
         if (matchesSearch && matchesStatus) {
-            row.style.display = '';
-            visibleRows.push({row: row, name: name, loanId: loanId, email: email, account: account, status: status});
+            visibleRows.push({
+                row: row, 
+                office: office,
+                creditAccount: creditAccount,
+                customerAccount: customerAccount,
+                customerName: customerName
+            });
         } else {
-            row.style.display = 'none';
+            hiddenRows.push(row);
         }
     });
     
-    // Sort rows if needed
+    // Sort visible rows if needed
     if (sortBy && visibleRows.length > 0) {
         visibleRows.sort((a, b) => {
             let aVal, bVal;
             switch(sortBy) {
-                case 'name': aVal = a.name; bVal = b.name; break;
-                case 'loanid': aVal = a.loanId; bVal = b.loanId; break;
-                case 'email': aVal = a.email; bVal = b.email; break;
-                case 'account': aVal = a.account; bVal = b.account; break;
-                case 'status': aVal = a.status; bVal = b.status; break;
+                case 'name': aVal = a.customerName; bVal = b.customerName; break;
+                case 'loanid': aVal = a.creditAccount; bVal = b.creditAccount; break;
+                case 'account': aVal = a.customerAccount; bVal = b.customerAccount; break;
                 default: return 0;
             }
             return aVal.localeCompare(bVal);
         });
+    }
+    
+    // Reorder rows in DOM: first visible (sorted), then hidden
+    const tbody = table.querySelector('tbody');
+    if (tbody) {
+        // Clear tbody
+        tbody.innerHTML = '';
         
-        // Reorder rows in DOM
-        const tbody = table.querySelector('tbody');
+        // Append visible rows (sorted)
         visibleRows.forEach(item => {
+            item.row.style.display = '';
             tbody.appendChild(item.row);
         });
+        
+        // Append hidden rows
+        hiddenRows.forEach(row => {
+            row.style.display = 'none';
+            tbody.appendChild(row);
+        });
     }
+}
+
+// Apply filters and close panel
+function applyFilters() {
+    // Apply the filters
+    filterTable();
+    
+    // Close the filters panel
+    toggleFilters();
 }
 
 // Clear all filters
@@ -199,12 +226,62 @@ function toggleUserMenu() {
     }
 }
 
+// Toggle page rows dropdown
+function togglePageRowsDropdown(event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const wrapper = document.querySelector('.pagination-select-wrapper');
+    if (wrapper) {
+        wrapper.classList.toggle('active');
+    }
+}
+
+// Select page rows
+function selectPageRows(value, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const selectValue = document.querySelector('.pagination-select-value');
+    const dropdown = document.getElementById('pageRowsDropdown');
+    
+    if (!dropdown) {
+        console.error('Dropdown not found');
+        return;
+    }
+    
+    const items = dropdown.querySelectorAll('.pagination-dropdown-item');
+    
+    if (selectValue) {
+        selectValue.textContent = value;
+    }
+    
+    // Update active state
+    items.forEach(item => {
+        item.classList.remove('active');
+        if (item.textContent.trim() === value.toString()) {
+            item.classList.add('active');
+        }
+    });
+    
+    // Close dropdown
+    const wrapper = document.querySelector('.pagination-select-wrapper');
+    if (wrapper) {
+        wrapper.classList.remove('active');
+    }
+    
+    // Here you can add logic to update the table pagination
+    console.log('Page rows changed to:', value);
+}
+
+
 // Close user menu when clicking outside
 document.addEventListener('click', function(event) {
     const userProfile = document.querySelector('.user-profile');
     const userMenu = document.getElementById('userMenu');
     const filtersPanel = document.getElementById('filtersPanel');
     const filtersBtn = document.querySelector('.filters-btn');
+    const pageRowsWrapper = document.querySelector('.pagination-select-wrapper');
     
     // Close user menu
     if (userProfile && userMenu && !userProfile.contains(event.target)) {
@@ -217,6 +294,11 @@ document.addEventListener('click', function(event) {
         !filtersBtn.contains(event.target)) {
         filtersPanel.classList.remove('active');
         filtersBtn.classList.remove('active');
+    }
+    
+    // Close page rows dropdown when clicking outside
+    if (pageRowsWrapper && !pageRowsWrapper.contains(event.target)) {
+        pageRowsWrapper.classList.remove('active');
     }
 });
 

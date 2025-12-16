@@ -31,16 +31,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - <?php echo APP_NAME; ?></title>
+    <link rel="icon" type="image/png" href="<?php echo baseUrl('/assets/images/logo.png'); ?>">
+    <link rel="alternate icon" href="<?php echo baseUrl('/assets/images/logo.png'); ?>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo baseUrl('/assets/css/style.css'); ?>">
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-form">
-            <div class="avatar-container">
-                <div class="avatar"></div>
+    <div class="login-page-container">
+        <!-- Left side with avatar -->
+        <div class="login-avatar-section">
+            <div class="login-avatar-container">
+                <img src="<?php echo baseUrl('/assets/images/user.png'); ?>" alt="Avatar" class="login-avatar-img">
             </div>
-            <h1>Login</h1>
-            <p class="subtitle">Login to access your <?php echo APP_NAME; ?> account</p>
+        </div>
+        
+        <!-- Center section with form -->
+        <div class="login-form-section">
+            <div class="login-header">
+                <h1 class="login-title">LOGIN</h1>
+                <p class="login-subtitle">Login to access your account</p>
+            </div>
             
             <?php
             $flash = getFlashMessage();
@@ -50,52 +62,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
                 </div>
             <?php endif; ?>
             
-            <form action="<?php echo baseUrl('/login'); ?>" method="POST">
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" value="john.doe@gmail.com" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="password-input">
-                        <input type="password" id="password" name="password" required>
-                        <span class="toggle-password" onclick="togglePassword()">👁</span>
+            <form action="<?php echo baseUrl('/login'); ?>" method="POST" class="login-form-new">
+                <div class="form-field-group">
+                    <label for="email" class="form-label">Email</label>
+                    <div class="form-input-wrapper">
+                        <input type="email" id="email" name="email" value="john.doe@gmail.com" class="form-input" required>
                     </div>
                 </div>
                 
-                <div class="form-options">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="remember"> Remember me
-                    </label>
-                    <a href="#" class="forgot-link">Forgot Password</a>
+                <div class="form-field-group">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="form-input-wrapper password-wrapper">
+                        <input type="password" id="password" name="password" class="form-input" required>
+                        <button type="button" class="eye-toggle" onclick="togglePassword()">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10 4C6 4 3.5 6.5 2 10C3.5 13.5 6 16 10 16C14 16 16.5 13.5 18 10C16.5 6.5 14 4 10 4ZM10 14C7.79 14 6 12.21 6 10C6 7.79 7.79 6 10 6C12.21 6 14 7.79 14 10C14 12.21 12.21 14 10 14ZM10 8C8.9 8 8 8.9 8 10C8 11.1 8.9 12 10 12C11.1 12 12 11.1 12 10C12 8.9 11.1 8 10 8Z" fill="#1E1E1E"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 
-                <button type="submit" class="login-btn">Login</button>
+                <div class="remember-me-group">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" name="remember" class="remember-checkbox" checked>
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-label">Remember me</span>
+                    </label>
+                </div>
                 
-                <p class="signup-link">Don't have an account? <a href="#">Sign up</a></p>
+                <button type="submit" class="login-button-new">Login</button>
             </form>
         </div>
         
-        <div class="login-illustration">
-            <div class="illustration-panel">
-                <div class="phone-illustration">
-                    <div class="hand-phone-container">
-                        <div class="hand"></div>
-                        <div class="phone">
-                            <div class="phone-screen">
-                                <div class="lock-icon">🔒</div>
-                                <div class="asterisks">****</div>
-                            </div>
-                        </div>
-                        <div class="shield-icon"></div>
-                    </div>
-                </div>
-                <div class="pagination-dots">
-                    <div class="pagination-dot active"></div>
-                    <div class="pagination-dot"></div>
-                    <div class="pagination-dot"></div>
-                </div>
+        <!-- Right side with illustration -->
+        <div class="login-illustration-section">
+            <div class="login-illustration-panel">
+                <img src="<?php echo baseUrl('/assets/images/login.png'); ?>" alt="Login Illustration" class="login-illustration-img">
             </div>
         </div>
     </div>

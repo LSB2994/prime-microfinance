@@ -8,7 +8,7 @@ define('APP_NAME', 'PRIME Micro finance');
 define('APP_VERSION', '1.0.0');
 define('BASE_URL', 'http://localhost/kosign/prime-microfinance');
 
-// Database Configuration (if needed)      
+// Database Configuration (if needed)
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'prime_microfinance');
 define('DB_USER', 'root');

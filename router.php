@@ -22,9 +22,9 @@ if ($base_path !== '/') {
 $routes = [
     '/' => 'index.php',
     '/index.php' => 'index.php',
-    '/home' => 'views/landing.php',
-    '/landing' => 'views/landing.php',
     '/login' => 'views/index.php',
+    '/registration' => 'views/registration.php',
+    '/register' => 'views/registration.php',
     '/dashboard' => 'views/dashboard.php',
     '/dashboard.php' => 'views/dashboard.php',
     '/logout' => 'views/logout.php',
