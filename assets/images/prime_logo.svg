@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="prime-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 140">
+  <defs>
+    <style>
+      .shield-outline { fill: none; stroke: #002fff; stroke-width: 3; }
+      .coins { fill: #ffd700; stroke: #daa520; stroke-width: 1.5; }
+      .plant { fill: #228b22; }
+      .text-prime { fill: #002fff; font-family: 'Arial', sans-serif; font-weight: bold; }
+      .text-micro { fill: #002fff; font-family: 'Arial', sans-serif; }
+    </style>
+  </defs>
+  
+  <!-- Shield Shape -->
+  <path class="shield-outline" d="M 100 15 L 125 20 L 140 40 L 140 65 L 125 85 L 100 95 L 75 85 L 60 65 L 60 40 L 75 20 Z"/>
+  
+  <!-- Three Coins Stack -->
+  <!-- Bottom Coin -->
+  <circle class="coins" cx="100" cy="70" r="9"/>
+  <!-- Middle Coin -->
+  <circle class="coins" cx="100" cy="62" r="9"/>
+  <!-- Top Coin -->
+  <circle class="coins" cx="100" cy="54" r="9"/>
+  
+  <!-- Coin Highlights -->
+  <ellipse cx="100" cy="70" rx="5" ry="2" fill="#ffed4e" opacity="0.6"/>
+  <ellipse cx="100" cy="62" rx="5" ry="2" fill="#ffed4e" opacity="0.6"/>
+  <ellipse cx="100" cy="54" rx="5" ry="2" fill="#ffed4e" opacity="0.6"/>
+  
+  <!-- Plant/Sprout with two leaves -->
+  <!-- Stem -->
+  <line x1="100" y1="45" x2="100" y2="38" stroke="#228b22" stroke-width="2" stroke-linecap="round"/>
+  <!-- Left Leaf -->
+  <path class="plant" d="M 100 40 L 92 32 L 90 36 L 98 38 Z"/>
+  <ellipse class="plant" cx="91" cy="33" rx="2.5" ry="4"/>
+  <!-- Right Leaf -->
+  <path class="plant" d="M 100 40 L 108 32 L 110 36 L 102 38 Z"/>
+  <ellipse class="plant" cx="109" cy="33" rx="2.5" ry="4"/>
+  
+  <!-- PRIME Text -->
+  <text class="text-prime" x="100" y="115" font-size="28" text-anchor="middle" font-weight="bold" letter-spacing="2">PRIME</text>
+  
+  <!-- MICROFINANCE Text -->
+  <text class="text-micro" x="100" y="135" font-size="16" text-anchor="middle" letter-spacing="1">MICROFINANCE</text>
+</svg>

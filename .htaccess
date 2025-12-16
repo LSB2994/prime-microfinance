@@ -1,0 +1,32 @@
+# Apache URL Rewriting Rules
+RewriteEngine On
+RewriteBase /kosign/prime-microfinance/
+
+# Prevent directory listing
+Options -Indexes
+
+# Route to router if file doesn't exist
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Route definitions
+RewriteRule ^home$ views/landing.php [L]
+RewriteRule ^landing$ views/landing.php [L]
+RewriteRule ^login$ views/index.php [L]
+RewriteRule ^dashboard$ views/dashboard.php [L]
+RewriteRule ^logout$ views/logout.php [L]
+
+# API routes
+RewriteRule ^api/customers$ api/customers.php [L]
+RewriteRule ^api/loan-repayment/([0-9]+)$ api/loan-repayment.php?loan_id=$1 [L]
+
+# Security: Block access to config files
+<FilesMatch "^(config|router)\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Enable PHP error display (disable in production)
+php_flag display_errors On
+php_value error_reporting E_ALL
+
