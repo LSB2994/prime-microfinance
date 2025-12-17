@@ -7,19 +7,60 @@ if (isLoggedIn()) {
     redirect('/dashboard');
 }
 
+/**
+ * Load hard-coded users from JSON file
+ *
+ * @return array
+ */
+function loadUsersFromJson(): array {
+    $usersFile = __DIR__ . '/../data/users.json';
+
+    if (!file_exists($usersFile)) {
+        return [];
+    }
+
+    $json = file_get_contents($usersFile);
+    $data = json_decode($json, true);
+
+    if (!is_array($data)) {
+        return [];
+    }
+
+    return $data['users'] ?? [];
+}
+
 // Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
-    // Simple authentication - in production, verify against database
     $email = sanitize($_POST['email']);
     $password = $_POST['password'] ?? '';
-    
-    // Demo: accept any password for demo purposes
+
     if (!empty($email) && !empty($password)) {
-        $_SESSION['logged_in'] = true;
-        $_SESSION['email'] = $email;
-        $_SESSION['user_name'] = 'Danielle Campbell'; // Demo user
-        setFlashMessage('success', 'Login successful!');
-        redirect('/dashboard');
+        $users = loadUsersFromJson();
+        $matchedUser = null;
+
+        foreach ($users as $user) {
+            // Match by email (case insensitive) and plain-text password from JSON
+            if (
+                isset($user['email'], $user['password']) &&
+                strcasecmp($user['email'], $email) === 0 &&
+                $user['password'] === $password
+            ) {
+                $matchedUser = $user;
+                break;
+            }
+        }
+
+        if ($matchedUser) {
+            // Store login state in PHP session (backed by browser cookie)
+            $_SESSION['logged_in'] = true;
+            $_SESSION['email'] = $matchedUser['email'];
+            $_SESSION['user_name'] = $matchedUser['name'] ?? $matchedUser['email'];
+
+            setFlashMessage('success', 'Login successful!');
+            redirect('/dashboard');
+        } else {
+            setFlashMessage('error', 'Invalid email or password');
+        }
     } else {
         setFlashMessage('error', 'Please enter email and password');
     }

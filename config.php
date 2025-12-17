@@ -15,10 +15,23 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
+// Oracle Database Configuration
+define('ORACLE_USERNAME', 'BI');
+define('ORACLE_PASSWORD', 'BI');
+define('ORACLE_CONNECT_STRING', '192.168.168.2:1521/PRIMEUATO9'); // host:port/service
+
 // Session Configuration
-define('SESSION_LIFETIME', 3600); // 1 hour
+define('SESSION_LIFETIME', 28800); // 8 hours
 ini_set('session.gc_maxlifetime', SESSION_LIFETIME);
-session_set_cookie_params(SESSION_LIFETIME);
+
+// Store session identifier in a browser cookie with 8h lifetime
+session_set_cookie_params([
+    'lifetime' => SESSION_LIFETIME,
+    'path' => '/',
+    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
 
 // Paths
 define('ROOT_PATH', __DIR__);

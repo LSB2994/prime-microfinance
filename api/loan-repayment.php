@@ -1,9 +1,12 @@
 <?php
 /**
  * Loan Repayment API Endpoint
+ *
+ * NOTE: Adjust the SQL below (table/view name and column names) to match your Oracle schema.
  */
 require_once '../config.php';
 require_once '../includes/functions.php';
+require_once '../includes/db.php';
 
 header('Content-Type: application/json');
 
@@ -17,46 +20,45 @@ if (!$loan_id) {
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'message' => 'Loan ID is required'
+        'message' => 'Loan ID is required',
     ]);
     exit;
 }
 
-// Get repayment data (in production, fetch from database)
-$repayments = [
-    [
-        'payment_date' => '2024-01-15',
-        'amount' => 1500.00,
-        'status' => 'paid',
-        'remarks' => 'On time',
-        'other' => '-'
-    ],
-    [
-        'payment_date' => '2024-02-15',
-        'amount' => 1500.00,
-        'status' => 'paid',
-        'remarks' => 'On time',
-        'other' => '-'
-    ],
-    [
-        'payment_date' => '2024-03-15',
-        'amount' => 1500.00,
-        'status' => 'overdue',
-        'remarks' => 'Late payment',
-        'other' => '-'
-    ],
-    [
-        'payment_date' => '2024-04-15',
-        'amount' => 1500.00,
-        'status' => 'pending',
-        'remarks' => 'Due soon',
-        'other' => '-'
-    ]
-];
+try {
+    /**
+     * Example query:
+     *  - Replace BI_LOAN_REPAYMENT_VIEW with your real table/view
+     *  - Replace column names/aliases so they match your database structure
+     */
+    $sql = "
+        SELECT
+            LOAN_ID              AS loan_id,
+            PAYMENT_DATE         AS payment_date,
+            NUMBER_OF_DAYS       AS days_count,
+            PRINCIPAL_AMOUNT     AS principal_amount,
+            INTEREST_AMOUNT      AS interest_amount,
+            TOTAL_AMOUNT         AS total_amount,
+            PRINCIPAL_BALANCE    AS principal_balance,
+            OTHER_INFO           AS other
+        FROM BI_LOAN_REPAYMENT_VIEW
+        WHERE LOAN_ID = :loan_id
+        ORDER BY PAYMENT_DATE
+    ";
 
-echo json_encode([
-    'success' => true,
-    'loan_id' => $loan_id,
-    'data' => $repayments
-]);
+    $rows = oracleFetchAll($sql, [':loan_id' => $loan_id]);
+
+    echo json_encode([
+        'success' => true,
+        'loan_id' => $loan_id,
+        'data'    => $rows,
+    ]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Failed to load loan repayment data from Oracle',
+        'error'   => $e->getMessage(),
+    ]);
+}
 
