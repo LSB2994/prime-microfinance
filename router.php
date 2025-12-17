@@ -2,9 +2,11 @@
 /**
  * Simple Router for PHP Built-in Server
  * This file handles routing when using: php -S localhost:8000 router.php
+ * It also acts as an interceptor to enforce authentication rules.
  */
 
-require_once 'config.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/interceptor.php';
 
 $request_uri = $_SERVER['REQUEST_URI'];
 $script_name = $_SERVER['SCRIPT_NAME'];
@@ -18,30 +20,50 @@ if ($base_path !== '/') {
     $uri = str_replace($base_path, '', $uri);
 }
 
-// Route definitions
+// Route definitions (only clean URLs, MVC-style)
 $routes = [
     '/' => 'index.php',
-    '/index.php' => 'index.php',
-    '/login' => 'views/index.php',
-    '/registration' => 'views/registration.php',
-    '/register' => 'views/registration.php',
-    '/dashboard' => 'views/dashboard.php',
-    '/dashboard.php' => 'views/dashboard.php',
+    '/login' => 'views/login.php',
+    // No registration feature
+    '/customer' => 'controllers/CustomerController.php',
+    '/client_infm' => 'controllers/ClientInfmController.php',
     '/logout' => 'views/logout.php',
-    '/logout.php' => 'views/logout.php',
-    '/api/customers' => 'api/customers.php',
-    '/api/customers.php' => 'api/customers.php',
-    '/api/loan-repayment' => 'api/loan-repayment.php',
-    '/api/loan-repayment.php' => 'api/loan-repayment.php',
+    '/api/customers' => 'controllers/ApiCustomersController.php',
+    '/api/customer-detail' => 'controllers/ApiCustomerDetailController.php',
+    '/api/client_infm' => 'controllers/ApiClientInfmController.php',
 ];
 
 // Check if route exists
 if (isset($routes[$uri])) {
     $file = $routes[$uri];
-    
+
+    // Resolve to absolute path relative to this router file
+    $filePath = __DIR__ . '/' . ltrim($file, '/');
+
     // Check if file exists
-    if (file_exists($file)) {
-        require_once $file;
+    if (file_exists($filePath)) {
+        // Interceptor: enforce auth for protected routes
+        $publicRoutes = ['/', '/login', '/registration', '/register'];
+
+        if (!in_array($uri, $publicRoutes, true)) {
+            if (strpos($uri, '/api/') === 0) {
+                // API route: return JSON 401 if not logged in
+                if (!isLoggedIn()) {
+                    header('Content-Type: application/json');
+                    http_response_code(401);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Unauthorized',
+                    ]);
+                    exit;
+                }
+            } else {
+                // Page route: redirect to login if not logged in
+                requireLogin();
+            }
+        }
+
+        require_once $filePath;
         exit;
     }
 }

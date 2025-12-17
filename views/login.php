@@ -1,25 +1,64 @@
 <?php
 require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/interceptor.php';
 
 // Redirect if already logged in
 if (isLoggedIn()) {
-    redirect('/dashboard');
+    redirect('/client_infm');
+}
+
+/**
+ * Load hard-coded users from JSON file
+ *
+ * @return array
+ */
+function loadUsersFromJson(): array {
+    $usersFile = __DIR__ . '/../data/users.json';
+
+    if (!file_exists($usersFile)) {
+        return [];
+    }
+
+    $json = file_get_contents($usersFile);
+    $data = json_decode($json, true);
+
+    if (!is_array($data)) {
+        return [];
+    }
+
+    return $data['users'] ?? [];
 }
 
 // Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
-    // Simple authentication - in production, verify against database
     $email = sanitize($_POST['email']);
     $password = $_POST['password'] ?? '';
-    
-    // Demo: accept any password for demo purposes
+
     if (!empty($email) && !empty($password)) {
-        $_SESSION['logged_in'] = true;
-        $_SESSION['email'] = $email;
-        $_SESSION['user_name'] = 'Danielle Campbell'; // Demo user
-        setFlashMessage('success', 'Login successful!');
-        redirect('/dashboard');
+        $users = loadUsersFromJson();
+        $matchedUser = null;
+
+        foreach ($users as $user) {
+            if (
+                isset($user['email'], $user['password']) &&
+                strcasecmp($user['email'], $email) === 0 &&
+                $user['password'] === $password
+            ) {
+                $matchedUser = $user;
+                break;
+            }
+        }
+
+        if ($matchedUser) {
+            $_SESSION['logged_in'] = true;
+            $_SESSION['email'] = $matchedUser['email'];
+            $_SESSION['user_name'] = $matchedUser['name'] ?? $matchedUser['email'];
+
+            setFlashMessage('success', 'Login successful!');
+            redirect('/client_infm');
+        } else {
+            setFlashMessage('error', 'Invalid email or password');
+        }
     } else {
         setFlashMessage('error', 'Please enter email and password');
     }
@@ -35,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
     <link rel="alternate icon" href="<?php echo baseUrl('/assets/images/logo.png'); ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Kantumruy+Pro:wght@400;500;600&family=Noto+Serif+Khmer:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo baseUrl('/assets/css/style.css'); ?>">
 </head>
 <body>
@@ -102,7 +141,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
         </div>
     </div>
     
-    <script src="<?php echo baseUrl('/assets/js/main.js'); ?>"></script>
+    <script src="<?php echo baseUrl('/assets/js/customer.js'); ?>"></script>
 </body>
 </html>
+
 

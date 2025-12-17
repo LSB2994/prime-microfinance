@@ -1,6 +1,8 @@
 <?php
 /**
- * Helper Functions
+ * Helper / interceptor functions
+ *
+ * Moved from includes/functions.php
  */
 
 /**
@@ -77,4 +79,5 @@ function formatCurrency($amount) {
 function formatDate($date, $format = 'Y-m-d') {
     return date($format, strtotime($date));
 }
+
 
