@@ -2435,13 +2435,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px;
+    padding: 24px 16px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .logo-img-new {
-    width: 193px;
-    height: 63px;
+    width: 180px;
+    height: 44px;
     object-fit: contain;
 }
 
@@ -2727,6 +2727,21 @@ body {
 
 .table-wrapper::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.2);
+}
+
+.table-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 10;
+    font-size: 14px;
+    color: #344054;
 }
 
 .customers-table-new {
@@ -3026,7 +3041,7 @@ body {
 .pagination-dropdown {
     display: none;
     position: absolute;
-    top: calc(100% + 4px);
+    bottom: calc(100% + 4px);
     left: 0;
     background: white;
     border: 1px solid rgba(0, 0, 0, 0.25);

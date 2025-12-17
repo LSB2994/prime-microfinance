@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/interceptor.php';
 
 // Redirect if already logged in
 if (isLoggedIn()) {
-    redirect('/client_infm');
+    redirect('/customer');
 }
 
 /**
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
             $_SESSION['user_name'] = $matchedUser['name'] ?? $matchedUser['email'];
 
             setFlashMessage('success', 'Login successful!');
-            redirect('/client_infm');
+            redirect('/customer');
         } else {
             setFlashMessage('error', 'Invalid email or password');
         }

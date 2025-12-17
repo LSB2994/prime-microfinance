@@ -25,12 +25,8 @@ $routes = [
     '/' => 'index.php',
     '/login' => 'views/login.php',
     // No registration feature
-    '/customer' => 'controllers/CustomerController.php',
-    '/client_infm' => 'controllers/ClientInfmController.php',
+    '/customer' => 'views/customer.php',
     '/logout' => 'views/logout.php',
-    '/api/customers' => 'controllers/ApiCustomersController.php',
-    '/api/customer-detail' => 'controllers/ApiCustomerDetailController.php',
-    '/api/client_infm' => 'controllers/ApiClientInfmController.php',
 ];
 
 // Check if route exists

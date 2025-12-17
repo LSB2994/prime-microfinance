@@ -12,8 +12,8 @@ function togglePassword() {
     }
 }
 
-// Show loan repayment / customer-detail modal
-async function showLoanRepayment(loanId) {
+// Show loan repayment / customer-detail modal (using data attributes from the row)
+function showLoanRepayment(rowEl) {
     const modal = document.getElementById('loanModal');
     if (!modal) return;
 
@@ -27,96 +27,46 @@ async function showLoanRepayment(loanId) {
         }
     };
 
-    // Show basic loading state for dynamic fields
-    setText('detail-office', '...');
-    setText('detail-acno', loanId || '');
-    setText('detail-customer-account', '...');
-    setText('detail-disburse-date', '...');
-    setText('detail-deposit-account', '...');
-    setText('detail-interest-rate', '...');
-    setText('detail-loan-cycle', '...');
-    setText('detail-customer-name', '...');
-    setText('detail-coborrower-name', '...');
-    setText('detail-maturity-date', '...');
-    setText('detail-period', '...');
-    setText('detail-loan-type', '');
-    setText('detail-service-fee', '...');
-    setText('detail-amount', '...');
-    setText('detail-phone', '...');
-    setText('detail-address', '...');
+    if (!rowEl || !rowEl.dataset) return;
 
-    try {
-        // Load customer detail from Oracle via API
-        const response = await fetch(`api/customer-detail?acno=${encodeURIComponent(loanId)}`, {
-            credentials: 'include',
-        });
+    const d = rowEl.dataset;
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
+    // Map dataset fields to modal fields
+    setText('detail-office', d.brname || '');
+    setText('detail-acno', d.acno || '');
+    setText('detail-customer-account', d.ctmid || '');
+    setText('detail-disburse-date', d.disbursedt || '');
+    setText('detail-deposit-account', d.depositacc || '');
 
-        const data = await response.json();
-        if (!data.success || !Array.isArray(data.data) || data.data.length === 0) {
-            throw new Error('No customer detail found');
-        }
-
-        const d = data.data[0];
-
-        // Map API fields to modal fields
-        setText('detail-office', d.brname || '');
-        setText('detail-acno', d.acno || loanId || '');
-        setText('detail-customer-account', d.ctmid || '');
-        setText('detail-disburse-date', d.disbursedt || '');
-        setText('detail-deposit-account', d.depositacc || '');
-
-        // Interest / IFC value
-        if (d.ifcvalue != null) {
-            setText('detail-interest-rate', d.ifcvalue);
-        }
-
-        // Loan cycle and type
-        if (d.loancycle != null) {
-            setText('detail-loan-cycle', `${d.loancycle}`);
-        }
-        setText('detail-loan-type', d.type_loan || '');
-
-        // Customer and co-borrower names
-        const cNameKh = d.cnamekh || '';
-        const cNameEn = d.cnameen || '';
-        const coNameKh = d.cobonamekh || '';
-        const coNameEn = d.cobonameen || '';
-
-        setText(
-            'detail-customer-name',
-            [cNameKh, cNameEn].filter(Boolean).join(' / ')
-        );
-        setText(
-            'detail-coborrower-name',
-            [coNameKh, coNameEn].filter(Boolean).join(' / ')
-        );
-
-        // Maturity, period, fee, amount, phone, address
-        setText('detail-maturity-date', d.maturitydt || '');
-
-        if (d.period != null) {
-            setText('detail-period', `${d.period}`);
-        }
-
-        if (d.adminfeerate != null) {
-            setText('detail-service-fee', d.adminfeerate);
-        }
-
-        if (d.dbamt != null) {
-            setText('detail-amount', d.dbamt);
-        }
-
-        setText('detail-phone', d.phone || '');
-        setText('detail-address', d.ctmaddress || '');
-    } catch (error) {
-        console.error('Failed to load customer detail:', error);
-        // Optionally show an error message in the modal
-        setText('detail-office', 'Error loading data');
+    if (d.ifcvalue != null) {
+        setText('detail-interest-rate', d.ifcvalue);
     }
+
+    if (d.loancycle != null) {
+        setText('detail-loan-cycle', d.loancycle);
+    }
+
+    setText('detail-customer-name', d.customerName || '');
+    setText('detail-coborrower-name', d.coborrowerName || '');
+
+    setText('detail-maturity-date', d.maturitydt || '');
+
+    if (d.period != null) {
+        setText('detail-period', d.period);
+    }
+
+    setText('detail-loan-type', d.typeLoan || '');
+
+    if (d.adminfeerate != null) {
+        setText('detail-service-fee', d.adminfeerate);
+    }
+
+    if (d.dbamt != null) {
+        setText('detail-amount', d.dbamt);
+    }
+
+    setText('detail-phone', d.phone || '');
+    setText('detail-address', d.ctmaddress || '');
 }
 
 // Close loan repayment modal
@@ -191,12 +141,14 @@ function printLoanSchedule() {
 
 // Pagination state for customers table
 let currentPage = 1;
-let rowsPerPage = 20;
+let rowsPerPage = 10;
 
 function getCustomerRows() {
     const table = document.getElementById('customersTable');
     if (!table) return [];
-    return Array.from(table.querySelectorAll('tbody tr'));
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return [];
+    return Array.from(tbody.querySelectorAll('tr')).filter(row => row.id !== 'noResultsRow');
 }
 
 function updatePaginationDisplay(showing, total) {
@@ -206,99 +158,10 @@ function updatePaginationDisplay(showing, total) {
     }
 }
 
-// Load customers list from API and populate table
-async function loadCustomers() {
-    const table = document.getElementById('customersTable');
-    if (!table) return;
-    const tbody = table.querySelector('tbody');
-    if (!tbody) return;
-
-    try {
-        // Show loading row
-        tbody.innerHTML = `
-            <tr class="loading-row">
-                <td colspan="17">Loading customers...</td>
-            </tr>
-        `;
-
-        const response = await fetch('/api/customers', {
-            credentials: 'include',
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const json = await response.json();
-        console.log('Customers API result:', json);
-
-        if (!json.success || !Array.isArray(json.data)) {
-            console.error('Invalid customers data from API');
-            tbody.innerHTML = `
-                <tr class="error-row">
-                    <td colspan="17">Failed to load customers (invalid data). Check console for details.</td>
-                </tr>
-            `;
-            updatePaginationDisplay(0, 0);
-            return;
-        }
-
-        // Clear existing static rows
-        tbody.innerHTML = '';
-
-        json.data.forEach(item => {
-            // Keys are lowercased by oracleFetchAll
-            const c = item || {};
-
-            const tr = document.createElement('tr');
-            if (c.acno) {
-                tr.onclick = () => showLoanRepayment(c.acno);
-            }
-
-            const customerName = [c.cnamekh, c.cnameen].filter(Boolean).join(' / ');
-            const coborrowerName = [c.cobonamekh, c.cobonameen].filter(Boolean).join(' / ');
-
-            tr.innerHTML = `
-                <td>${c.brname || ''}</td>
-                <td>${c.acno || ''}</td>
-                <td>${c.ctmid || ''}</td>
-                <td>${c.disbursedt || ''}</td>
-                <td>${c.depositacc || ''}</td>
-                <td>${c.ifcvalue != null ? c.ifcvalue : ''}</td>
-                <td>${c.loancycle != null ? c.loancycle : ''}</td>
-                <td>${c.coname || ''}</td>
-                <td>${customerName}</td>
-                <td>${coborrowerName}</td>
-                <td>${c.maturitydt || ''}</td>
-                <td>${c.period != null ? c.period : ''}</td>
-                <td>${c.type_loan || ''}</td>
-                <td>${c.adminfeerate != null ? c.adminfeerate : ''}</td>
-                <td>${c.dbamt != null ? c.dbamt : ''}</td>
-                <td>${c.phone || ''}</td>
-                <td>
-                    <div class="address-cell">
-                        <p>${c.ctmaddress || ''}</p>
-                    </div>
-                </td>
-            `;
-
-            tbody.appendChild(tr);
-        });
-
-        // Reset pagination and apply
-        currentPage = 1;
-        filterTable();
-    } catch (error) {
-        console.error('Failed to load customers list:', error);
-        if (tbody) {
-            tbody.innerHTML = `
-                <tr class="error-row">
-                    <td colspan="17">Failed to load customers (API error). Check console for details.</td>
-                </tr>
-            `;
-        }
-        updatePaginationDisplay(0, 0);
-    }
+// Initialize table using existing server-rendered rows
+function initCustomersTable() {
+    currentPage = 1;
+    filterTable();
 }
 
 // Filter table based on search and apply pagination
@@ -306,6 +169,7 @@ function filterTable() {
     const searchInput = document.getElementById('searchInput');
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
     const rows = getCustomerRows();
+    const noResultsRow = document.getElementById('noResultsRow');
 
     const filtered = rows.filter(row => {
         const text = row.textContent.toLowerCase();
@@ -316,10 +180,13 @@ function filterTable() {
 
     if (total === 0) {
         rows.forEach(r => (r.style.display = 'none'));
+        if (noResultsRow) noResultsRow.style.display = '';
         currentPage = 1;
         updatePaginationDisplay(0, 0);
         return;
     }
+
+    if (noResultsRow) noResultsRow.style.display = 'none';
 
     const totalPages = Math.max(1, Math.ceil(total / rowsPerPage));
     if (currentPage > totalPages) currentPage = totalPages;
@@ -416,7 +283,7 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// Handle login form submission
+// Handle login form submission and table init
 document.addEventListener('DOMContentLoaded', function() {
     // Form will submit normally to server for proper authentication
     
@@ -429,8 +296,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 
-    // Load customers from API and then apply pagination/filter
-    loadCustomers();
+    // Simple loading progress bar animation
+    const loadingBar = document.getElementById('pageLoadingBar');
+    if (loadingBar) {
+        loadingBar.style.width = '60%';
+        setTimeout(() => {
+            loadingBar.style.width = '100%';
+            loadingBar.style.opacity = '0';
+            setTimeout(() => {
+                loadingBar.style.display = 'none';
+            }, 300);
+        }, 200);
+    }
+
+    // Hide table loading overlay once ready
+    const tableLoading = document.getElementById('customersTableLoading');
+    if (tableLoading) {
+        tableLoading.style.display = 'none';
+    }
+
+    // Apply pagination/filter on server-rendered rows
+    initCustomersTable();
 
     // Wire up previous/next buttons if present
     const paginationButtons = document.querySelectorAll('.pagination-new .pagination-btn');

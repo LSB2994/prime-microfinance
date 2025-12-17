@@ -1,8 +1,20 @@
 <?php
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/interceptor.php';
+require_once __DIR__ . '/../includes/db.php';
 
 // Require login handled by router interceptor for /customer
+
+$customerRows = [];
+$customerError = null;
+
+try {
+    // Single-file implementation: fetch customers directly from Oracle
+    $sql = "SELECT * FROM bi.ctm_infor_v1";
+    $customerRows = oracleFetchAll($sql);
+} catch (Exception $e) {
+    $customerError = $e->getMessage();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -50,12 +62,6 @@ require_once __DIR__ . '/../includes/interceptor.php';
                     </div>
                 </div>
                 <div class="header-right">
-                    <div class="notification-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
                     <div class="user-profile-new" onclick="toggleUserMenu()">
                         <div class="profile-avatar-new">
                             <img src="https://www.figma.com/api/mcp/asset/594914a2-c283-4d3e-af82-0c46d446c573" alt="Profile" class="avatar-img">
@@ -77,6 +83,9 @@ require_once __DIR__ . '/../includes/interceptor.php';
                         <h2 class="customers-title">Customers</h2>
                     </div>
                     <div class="table-wrapper">
+                        <div id="customersTableLoading" class="table-loading-overlay">
+                            Loading customers...
+                        </div>
                         <table class="customers-table-new" id="customersTable">
                             <thead>
                                 <tr>
@@ -100,6 +109,82 @@ require_once __DIR__ . '/../includes/interceptor.php';
                                 </tr>
                             </thead>
                             <tbody>
+                                <?php if ($customerError): ?>
+                                    <tr class="error-row">
+                                        <td colspan="17">Failed to load customers. <?php echo htmlspecialchars($customerError); ?></td>
+                                    </tr>
+                                <?php elseif (!empty($customerRows)): ?>
+                                    <?php foreach ($customerRows as $row): ?>
+                                        <?php
+                                            // $row keys are lower-case from oracleFetchAll()
+                                            $customerName = trim(
+                                                implode(' / ', array_filter([
+                                                    $row['cnamekh'] ?? '',
+                                                    $row['cnameen'] ?? '',
+                                                ]))
+                                            );
+                                            $coBorrowerName = trim(
+                                                implode(' / ', array_filter([
+                                                    $row['cobonamekh'] ?? '',
+                                                    $row['cobonameen'] ?? '',
+                                                ]))
+                                            );
+                                        ?>
+                                        <tr
+                                            <?php if (!empty($row['acno'])): ?>
+                                                onclick="showLoanRepayment(this)"
+                                            <?php endif; ?>
+                                            data-brname="<?php echo htmlspecialchars($row['brname'] ?? '', ENT_QUOTES); ?>"
+                                            data-acno="<?php echo htmlspecialchars($row['acno'] ?? '', ENT_QUOTES); ?>"
+                                            data-ctmid="<?php echo htmlspecialchars($row['ctmid'] ?? '', ENT_QUOTES); ?>"
+                                            data-disbursedt="<?php echo htmlspecialchars($row['disbursedt'] ?? '', ENT_QUOTES); ?>"
+                                            data-depositacc="<?php echo htmlspecialchars($row['depositacc'] ?? '', ENT_QUOTES); ?>"
+                                            data-ifcvalue="<?php echo htmlspecialchars($row['ifcvalue'] ?? '', ENT_QUOTES); ?>"
+                                            data-loancycle="<?php echo htmlspecialchars($row['loancycle'] ?? '', ENT_QUOTES); ?>"
+                                            data-customer-name="<?php echo htmlspecialchars($customerName, ENT_QUOTES); ?>"
+                                            data-coborrower-name="<?php echo htmlspecialchars($coBorrowerName, ENT_QUOTES); ?>"
+                                            data-maturitydt="<?php echo htmlspecialchars($row['maturitydt'] ?? '', ENT_QUOTES); ?>"
+                                            data-period="<?php echo htmlspecialchars($row['period'] ?? '', ENT_QUOTES); ?>"
+                                            data-type-loan="<?php echo htmlspecialchars($row['type_loan'] ?? '', ENT_QUOTES); ?>"
+                                            data-adminfeerate="<?php echo htmlspecialchars($row['adminfeerate'] ?? '', ENT_QUOTES); ?>"
+                                            data-dbamt="<?php echo htmlspecialchars($row['dbamt'] ?? '', ENT_QUOTES); ?>"
+                                            data-phone="<?php echo htmlspecialchars($row['phone'] ?? '', ENT_QUOTES); ?>"
+                                            data-ctmaddress="<?php echo htmlspecialchars((string)($row['ctmaddress'] ?? ''), ENT_QUOTES); ?>"
+                                        >
+                                            <td><?php echo htmlspecialchars($row['brname'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($row['acno'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($row['ctmid'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($row['disbursedt'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($row['depositacc'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($row['ifcvalue'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($row['loancycle'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($row['coname'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($customerName); ?></td>
+                                            <td><?php echo htmlspecialchars($coBorrowerName); ?></td>
+                                            <td><?php echo htmlspecialchars($row['maturitydt'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($row['period'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($row['type_loan'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($row['adminfeerate'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($row['dbamt'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($row['phone'] ?? ''); ?></td>
+                                            <td>
+                                                <div class="address-cell">
+                                                    <?php
+                                                        $addressVal = $row['ctmaddress'] ?? '';
+                                                    ?>
+                                                    <p><?php echo htmlspecialchars((string)$addressVal); ?></p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="17">No customers found.</td>
+                                    </tr>
+                                <?php endif; ?>
+                                <tr id="noResultsRow" style="display: none;">
+                                    <td colspan="17">No matching data found.</td>
+                                </tr>
                         </table>
                     </div>
                 </div>
@@ -115,14 +200,14 @@ require_once __DIR__ . '/../includes/interceptor.php';
                         <span class="pagination-label">Page rows</span>
                         <div class="pagination-select-wrapper">
                             <button type="button" class="pagination-select-btn" onclick="togglePageRowsDropdown(event); event.stopPropagation();">
-                                <span class="pagination-select-value">20</span>
+                                <span class="pagination-select-value">10</span>
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="pagination-chevron">
                                     <path d="M4 6L8 10L12 6" stroke="#1E1E1E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </button>
                             <div class="pagination-dropdown" id="pageRowsDropdown">
-                                <div class="pagination-dropdown-item" onclick="selectPageRows(10, event); event.stopPropagation();">10</div>
-                                <div class="pagination-dropdown-item active" onclick="selectPageRows(20, event); event.stopPropagation();">20</div>
+                                <div class="pagination-dropdown-item active" onclick="selectPageRows(10, event); event.stopPropagation();">10</div>
+                                <div class="pagination-dropdown-item" onclick="selectPageRows(20, event); event.stopPropagation();">20</div>
                                 <div class="pagination-dropdown-item" onclick="selectPageRows(30, event); event.stopPropagation();">30</div>
                                 <div class="pagination-dropdown-item" onclick="selectPageRows(40, event); event.stopPropagation();">40</div>
                                 <div class="pagination-dropdown-item" onclick="selectPageRows(50, event); event.stopPropagation();">50</div>

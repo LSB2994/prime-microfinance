@@ -1,14 +1,14 @@
 <?php
 /**
- * Oracle database helper functions (PDO OCI version)
+ * Oracle database helper functions
  */
 
 require_once __DIR__ . '/../config.php';
 
 /**
- * Get (and reuse) a single Oracle PDO connection.
+ * Get (and reuse) a single Oracle connection.
  *
- * @return PDO
+ * @return resource
  * @throws Exception
  */
 function getOracleConnection()
@@ -19,24 +19,19 @@ function getOracleConnection()
         return $conn;
     }
 
-    if (!class_exists('PDO')) {
-        throw new Exception('PDO extension is not enabled in PHP. Please enable PDO in php.ini.');
+    if (!function_exists('oci_connect')) {
+        throw new Exception('OCI8 extension is not enabled in PHP. Please enable oci8 in php.ini.');
     }
 
     $username = ORACLE_USERNAME;
     $password = ORACLE_PASSWORD;
-    $connectString = ORACLE_CONNECT_STRING; // e.g. 192.168.168.2:1521/PRIMEUATO9
+    $connectString = ORACLE_CONNECT_STRING;
 
-    // Build PDO OCI DSN
-    $dsn = 'oci:dbname=//' . $connectString . ';charset=AL32UTF8';
+    $conn = @oci_connect($username, $password, $connectString, 'AL32UTF8');
 
-    try {
-        $conn = new PDO($dsn, $username, $password, [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]);
-    } catch (PDOException $e) {
-        throw new Exception('Failed to connect to Oracle via PDO: ' . $e->getMessage());
+    if (!$conn) {
+        $e = oci_error();
+        throw new Exception('Failed to connect to Oracle: ' . ($e['message'] ?? 'Unknown error'));
     }
 
     return $conn;
@@ -54,29 +49,38 @@ function oracleFetchAll(string $sql, array $params = []): array
 {
     $conn = getOracleConnection();
 
-    $stmt = $conn->prepare($sql);
+    $stid = oci_parse($conn, $sql);
+    if (!$stid) {
+        $e = oci_error($conn);
+        throw new Exception('Failed to prepare Oracle statement: ' . ($e['message'] ?? 'Unknown error'));
+    }
 
     foreach ($params as $name => $value) {
         // Ensure parameter names start with colon
         $paramName = $name[0] === ':' ? $name : ':' . $name;
-        $stmt->bindValue($paramName, $value);
+        oci_bind_by_name($stid, $paramName, $params[$name]);
     }
 
-    $stmt->execute();
+    $r = oci_execute($stid);
+    if (!$r) {
+        $e = oci_error($stid);
+        throw new Exception('Failed to execute Oracle query: ' . ($e['message'] ?? 'Unknown error'));
+    }
 
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Normalize keys to lower-case for easier use in PHP/JSON
-    $normalizedRows = [];
-    foreach ($rows as $row) {
+    $rows = [];
+    // Use OCI_RETURN_LOBS so LOB columns (e.g. CLOB) are returned as strings
+    while (($row = oci_fetch_array($stid, OCI_ASSOC | OCI_RETURN_LOBS)) !== false) {
+        // Normalize keys to lower-case for easier use in PHP/JSON
         $normalized = [];
         foreach ($row as $key => $val) {
             $normalized[strtolower($key)] = $val;
         }
-        $normalizedRows[] = $normalized;
+        $rows[] = $normalized;
     }
 
-    return $normalizedRows;
+    oci_free_statement($stid);
+
+    return $rows;
 }
 
 
