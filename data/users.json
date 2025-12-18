@@ -1,11 +1,9 @@
 {
-  "users": [
-    {
-      "email": "john.doe@gmail.com",
-      "password": "123456",
-      "name": "Danielle Campbell"
-    }
-  ]
+    "users": [
+        {
+            "email": "info.kosign@gmail.com",
+            "password": "$2y$10$osoRCR.6nzqSCkBkpcTME.EnPvx3dQpxawanlLAnrqnxIQrUm0F3.",
+            "name": "KOSIGN"
+        }
+    ]
 }
-
-

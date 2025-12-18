@@ -80,4 +80,77 @@ function formatDate($date, $format = 'Y-m-d') {
     return date($format, strtotime($date));
 }
 
+/**
+ * Generate CSRF token
+ */
+function generateCsrfToken() {
+    if (!isset($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Verify CSRF token
+ */
+function verifyCsrfToken($token) {
+    if (!isset($_SESSION['csrf_token'])) {
+        return false;
+    }
+    return hash_equals($_SESSION['csrf_token'], $token);
+}
+
+/**
+ * Validate email format
+ */
+function validateEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
+/**
+ * Validate password strength
+ */
+function validatePassword($password, $minLength = 6) {
+    if (strlen($password) < $minLength) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Log error to file
+ */
+function logError($message, $context = []) {
+    $logFile = __DIR__ . '/../logs/app-errors.log';
+    $logDir = dirname($logFile);
+    
+    if (!is_dir($logDir)) {
+        @mkdir($logDir, 0755, true);
+    }
+    
+    $timestamp = date('Y-m-d H:i:s');
+    $contextStr = !empty($context) ? ' ' . json_encode($context) : '';
+    $logMessage = "[{$timestamp}] {$message}{$contextStr}\n";
+    
+    @file_put_contents($logFile, $logMessage, FILE_APPEND);
+}
+
+/**
+ * Get client IP address
+ */
+function getClientIp() {
+    $ipKeys = ['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'];
+    foreach ($ipKeys as $key) {
+        if (array_key_exists($key, $_SERVER) === true) {
+            foreach (explode(',', $_SERVER[$key]) as $ip) {
+                $ip = trim($ip);
+                if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
+                    return $ip;
+                }
+            }
+        }
+    }
+    return $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+}
+
 

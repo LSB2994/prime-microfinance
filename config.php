@@ -42,12 +42,22 @@ define('INCLUDES_PATH', ROOT_PATH . '/includes');
 // Security
 define('ENCRYPTION_KEY', 'your-secret-key-change-this-in-production');
 
-// Error Reporting (set to 0 in production)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Environment detection
+define('APP_ENV', getenv('APP_ENV') ?: 'development'); // 'development' or 'production'
 
-// Timezone
-date_default_timezone_set('UTC');
+// Error Reporting
+if (APP_ENV === 'production') {
+    error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+    ini_set('display_errors', 0);
+    ini_set('log_errors', 1);
+    ini_set('error_log', __DIR__ . '/logs/php-errors.log');
+} else {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+}
+
+// Timezone (Cambodia timezone)
+date_default_timezone_set('Asia/Phnom_Penh');
 
 // Start session
 if (session_status() === PHP_SESSION_NONE) {

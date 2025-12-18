@@ -41,18 +41,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
         foreach ($users as $user) {
             if (
                 isset($user['email'], $user['password']) &&
-                strcasecmp($user['email'], $email) === 0 &&
-                $user['password'] === $password
+                strcasecmp($user['email'], $email) === 0
             ) {
-                $matchedUser = $user;
-                break;
+                // Check if password is hashed (starts with $2y$) or plain text (for migration)
+                $passwordMatch = false;
+                if (strpos($user['password'], '$2y$') === 0) {
+                    // Hashed password - use password_verify
+                    $passwordMatch = password_verify($password, $user['password']);
+                } else {
+                    // Plain text password (legacy) - verify and upgrade to hash
+                    if ($user['password'] === $password) {
+                        $passwordMatch = true;
+                        // Upgrade to hashed password
+                        $usersFile = __DIR__ . '/../data/users.json';
+                        $jsonData = json_decode(file_get_contents($usersFile), true);
+                        foreach ($jsonData['users'] as &$u) {
+                            if (strcasecmp($u['email'], $email) === 0) {
+                                $u['password'] = password_hash($password, PASSWORD_DEFAULT);
+                                file_put_contents($usersFile, json_encode($jsonData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                if ($passwordMatch) {
+                    $matchedUser = $user;
+                    break;
+                }
             }
         }
 
         if ($matchedUser) {
+            // Regenerate session ID to prevent session fixation
+            session_regenerate_id(true);
+            
             $_SESSION['logged_in'] = true;
             $_SESSION['email'] = $matchedUser['email'];
             $_SESSION['user_name'] = $matchedUser['name'] ?? $matchedUser['email'];
+            $_SESSION['login_time'] = time();
 
             setFlashMessage('success', 'Login successful!');
             redirect('/customer');
@@ -105,14 +132,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
                 <div class="form-field-group">
                     <label for="email" class="form-label">Email</label>
                     <div class="form-input-wrapper">
-                        <input type="email" id="email" name="email" value="john.doe@gmail.com" class="form-input" required>
+                        <input type="email" id="email" name="email" placeholder="Please enter your email" class="form-input" required>
                     </div>
                 </div>
                 
                 <div class="form-field-group">
                     <label for="password" class="form-label">Password</label>
                     <div class="form-input-wrapper password-wrapper">
-                        <input type="password" id="password" name="password" class="form-input" required>
+                        <input type="password" id="password" name="password" placeholder="Please enter your password" class="form-input" required>
                         <button type="button" class="eye-toggle" onclick="togglePassword()">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M10 4C6 4 3.5 6.5 2 10C3.5 13.5 6 16 10 16C14 16 16.5 13.5 18 10C16.5 6.5 14 4 10 4ZM10 14C7.79 14 6 12.21 6 10C6 7.79 7.79 6 10 6C12.21 6 14 7.79 14 10C14 12.21 12.21 14 10 14ZM10 8C8.9 8 8 8.9 8 10C8 11.1 8.9 12 10 12C11.1 12 12 11.1 12 10C12 8.9 11.1 8 10 8Z" fill="#1E1E1E"/>

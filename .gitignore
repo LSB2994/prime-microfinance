@@ -1,0 +1,27 @@
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.local
+
+# Backup files
+*.backup.*
+data/users.json.backup.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
