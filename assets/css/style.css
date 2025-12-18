@@ -2752,6 +2752,7 @@ body {
 }
 
 .customers-table-new {
+    display: table;
     width: 100%;
     min-width: 1658px;
     border-collapse: separate;
@@ -2763,19 +2764,26 @@ body {
 }
 
 .customers-table-new thead {
+    display: table-header-group;
     background: white;
     position: sticky;
     top: 0;
     z-index: 10;
 }
 
+.customers-table-new tbody {
+    display: table-row-group;
+}
+
 .customers-table-new thead tr {
+    display: table-row;
     border-bottom: 1px solid rgba(0, 0, 0, 0.25);
     margin: 0;
     padding: 0;
 }
 
 .customers-table-new th {
+    display: table-cell;
     padding: 12px 10px;
     text-align: left;
     font-family: 'Kantumruy Pro', sans-serif;
@@ -2878,6 +2886,7 @@ body {
 }
 
 .customers-table-new tbody tr {
+    display: table-row;
     border-bottom: 1px solid rgba(0, 0, 0, 0.25);
     cursor: pointer;
     transition: background 0.2s;
@@ -2907,11 +2916,13 @@ body {
 }
 
 .customers-table-new tbody tr.blank-row td {
+    display: table-cell;
     border-bottom: 1px solid rgba(0, 0, 0, 0.25);
     height: 52px; /* Match data row height */
 }
 
 .customers-table-new td {
+    display: table-cell;
     padding: 16px 10px;
     font-family: 'Kantumruy Pro', sans-serif;
     font-weight: 400;

@@ -18,9 +18,8 @@ define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
 // Oracle Database Configuration
-define('ORACLE_USERNAME', 'BI');
-define('ORACLE_PASSWORD', 'BI');
-define('ORACLE_CONNECT_STRING', '192.168.168.2:1521/PRIMEUATO9'); // host:port/service
+// Note: Database credentials are now environment-based (see below)
+// This section is kept for backward compatibility but will be overridden by environment settings
 
 // Session Configuration
 define('SESSION_LIFETIME', 28800); // 8 hours
@@ -43,7 +42,28 @@ define('INCLUDES_PATH', ROOT_PATH . '/includes');
 define('ENCRYPTION_KEY', 'your-secret-key-change-this-in-production');
 
 // Environment detection
-define('APP_ENV', getenv('APP_ENV') ?: 'development'); // 'development' or 'production'
+// Set via environment variable: export APP_ENV=production
+// Or via server config: SetEnv APP_ENV production
+// Options: 'development', 'uat', 'production'
+define('APP_ENV', getenv('APP_ENV') ?: 'development');
+
+// Oracle Database Configuration by Environment
+if (APP_ENV === 'production') {
+    // Production Database
+    define('ORACLE_USERNAME', 'BI');
+    define('ORACLE_PASSWORD', 'BI');
+    define('ORACLE_CONNECT_STRING', '192.168.168.3:1521/PRMPRDO9'); // Production
+} elseif (APP_ENV === 'uat') {
+    // UAT Database
+    define('ORACLE_USERNAME', 'BI');
+    define('ORACLE_PASSWORD', 'BI');
+    define('ORACLE_CONNECT_STRING', '192.168.168.2:1521/PRIMEUATO9'); // UAT
+} else {
+    // Development Database (default to UAT for now)
+    define('ORACLE_USERNAME', 'BI');
+    define('ORACLE_PASSWORD', 'BI');
+    define('ORACLE_CONNECT_STRING', '192.168.168.2:1521/PRIMEUATO9'); // Development/UAT
+}
 
 // Error Reporting
 if (APP_ENV === 'production') {

@@ -167,6 +167,7 @@ function initCustomersTable() {
 }
 
 // Filter table based on search and apply pagination
+// Search only in: ការិយាល័យ (BRNAME - column 0) and អតិថិជនឈ្មោះ (Customer Name - column 8)
 function filterTable() {
     const searchInput = document.getElementById('searchInput');
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
@@ -175,8 +176,20 @@ function filterTable() {
     const tbody = document.querySelector('#customersTable tbody');
 
     const filtered = rows.filter(row => {
-        const text = row.textContent.toLowerCase();
-        return !searchTerm || text.includes(searchTerm);
+        if (!searchTerm) return true;
+        
+        // Get cells for the two searchable columns
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 9) return false;
+        
+        // Column 0: ការិយាល័យ (BRNAME)
+        const brnameText = cells[0] ? cells[0].textContent.toLowerCase() : '';
+        
+        // Column 8: អតិថិជនឈ្មោះ (Customer Name - CNAMEKH/CNAMEEN)
+        const customerNameText = cells[8] ? cells[8].textContent.toLowerCase() : '';
+        
+        // Search in both columns
+        return brnameText.includes(searchTerm) || customerNameText.includes(searchTerm);
     });
 
     const total = filtered.length;

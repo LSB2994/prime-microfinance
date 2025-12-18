@@ -68,7 +68,7 @@ try {
                                 <path d="M19 19L14.65 14.65" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </div>
-                        <input type="text" id="searchInput" placeholder="Name, Loan ID..." class="search-input-new" onkeyup="filterTable()">
+                        <input type="text" id="searchInput" placeholder="ការិយាល័យ, អតិថិជនឈ្មោះ" class="search-input-new" onkeyup="filterTable()">
                     </div>
                 </div>
                 <div class="header-right">
