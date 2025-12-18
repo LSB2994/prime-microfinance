@@ -267,8 +267,8 @@ try {
         </div>
     </div>
     
-    <?php /* Loan repayment / customer detail modal shared partial for customer page */ ?>
-    <?php include __DIR__ . '/customer-modal-partial.php'; ?>
+    <?php /* Loan repayment modal */ ?>
+    <?php include __DIR__ . '/loan-repayment-modal.php'; ?>
     
     <script src="<?php echo baseUrl('/assets/js/customer.js'); ?>"></script>
 </body>
