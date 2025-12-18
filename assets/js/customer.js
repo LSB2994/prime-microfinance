@@ -148,7 +148,9 @@ function getCustomerRows() {
     if (!table) return [];
     const tbody = table.querySelector('tbody');
     if (!tbody) return [];
-    return Array.from(tbody.querySelectorAll('tr')).filter(row => row.id !== 'noResultsRow');
+    return Array.from(tbody.querySelectorAll('tr')).filter(row => 
+        row.id !== 'noResultsRow' && !row.classList.contains('blank-row')
+    );
 }
 
 function updatePaginationDisplay(showing, total) {
@@ -161,7 +163,7 @@ function updatePaginationDisplay(showing, total) {
 // Initialize table using existing server-rendered rows
 function initCustomersTable() {
     currentPage = 1;
-    filterTable();
+    filterTable(); // This will call updatePaginationButtons internally
 }
 
 // Filter table based on search and apply pagination
@@ -170,6 +172,7 @@ function filterTable() {
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
     const rows = getCustomerRows();
     const noResultsRow = document.getElementById('noResultsRow');
+    const tbody = document.querySelector('#customersTable tbody');
 
     const filtered = rows.filter(row => {
         const text = row.textContent.toLowerCase();
@@ -180,9 +183,13 @@ function filterTable() {
 
     if (total === 0) {
         rows.forEach(r => (r.style.display = 'none'));
+        // Remove existing blank rows
+        const existingBlankRows = tbody ? tbody.querySelectorAll('tr.blank-row') : [];
+        existingBlankRows.forEach(r => r.remove());
         if (noResultsRow) noResultsRow.style.display = '';
         currentPage = 1;
         updatePaginationDisplay(0, 0);
+        updatePaginationButtons(1, 1); // Disable both buttons when no results
         return;
     }
 
@@ -195,16 +202,55 @@ function filterTable() {
     const start = (currentPage - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
+    // Hide all rows first
     rows.forEach(r => (r.style.display = 'none'));
 
+    // Show filtered rows for current page
+    const visibleRows = [];
     filtered.forEach((row, idx) => {
         if (idx >= start && idx < end) {
             row.style.display = '';
+            visibleRows.push(row);
         }
     });
 
+    // Remove existing blank rows
+    if (tbody) {
+        const existingBlankRows = tbody.querySelectorAll('tr.blank-row');
+        existingBlankRows.forEach(r => r.remove());
+    }
+
+    // Add blank rows to fill up to rowsPerPage
+    const visibleCount = visibleRows.length;
+    if (visibleCount < rowsPerPage && tbody) {
+        const blankRowsNeeded = rowsPerPage - visibleCount;
+        for (let i = 0; i < blankRowsNeeded; i++) {
+            const blankRow = document.createElement('tr');
+            blankRow.className = 'blank-row';
+            blankRow.innerHTML = '<td colspan="17"></td>';
+            tbody.appendChild(blankRow);
+        }
+    }
+
     const showing = Math.min(rowsPerPage, total - start);
     updatePaginationDisplay(showing, total);
+    
+    // Update button states
+    updatePaginationButtons(currentPage, totalPages);
+}
+
+// Update pagination button states (enable/disable)
+function updatePaginationButtons(page, totalPages) {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    if (prevBtn) {
+        prevBtn.disabled = page <= 1;
+    }
+    
+    if (nextBtn) {
+        nextBtn.disabled = page >= totalPages;
+    }
 }
 
 // Toggle user menu
@@ -296,42 +342,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 
-    // Simple loading progress bar animation
-    const loadingBar = document.getElementById('pageLoadingBar');
-    if (loadingBar) {
-        loadingBar.style.width = '60%';
-        setTimeout(() => {
-            loadingBar.style.width = '100%';
-            loadingBar.style.opacity = '0';
-            setTimeout(() => {
-                loadingBar.style.display = 'none';
-            }, 300);
-        }, 200);
-    }
-
-    // Hide table loading overlay once ready
-    const tableLoading = document.getElementById('customersTableLoading');
-    if (tableLoading) {
-        tableLoading.style.display = 'none';
-    }
-
     // Apply pagination/filter on server-rendered rows
     initCustomersTable();
 
-    // Wire up previous/next buttons if present
-    const paginationButtons = document.querySelectorAll('.pagination-new .pagination-btn');
-    if (paginationButtons.length >= 2) {
-        const prevBtn = paginationButtons[0];
-        const nextBtn = paginationButtons[paginationButtons.length - 1];
+    // Wire up previous/next buttons
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
 
+    if (prevBtn) {
         prevBtn.addEventListener('click', function() {
-            currentPage--;
-            filterTable();
+            if (!prevBtn.disabled && currentPage > 1) {
+                currentPage--;
+                filterTable();
+            }
         });
+    }
 
+    if (nextBtn) {
         nextBtn.addEventListener('click', function() {
-            currentPage++;
-            filterTable();
+            const rows = getCustomerRows();
+            const filtered = rows.filter(row => {
+                const searchInput = document.getElementById('searchInput');
+                const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+                const text = row.textContent.toLowerCase();
+                return !searchTerm || text.includes(searchTerm);
+            });
+            const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
+            
+            if (!nextBtn.disabled && currentPage < totalPages) {
+                currentPage++;
+                filterTable();
+            }
         });
     }
 });

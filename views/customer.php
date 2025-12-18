@@ -15,6 +15,105 @@ try {
 } catch (Exception $e) {
     $customerError = $e->getMessage();
 }
+
+// Helper functions for formatting values
+function formatInterestRate($value) {
+    if (empty($value) || $value === null || $value === '') {
+        return '';
+    }
+    $num = is_numeric($value) ? number_format((float)$value, 2, '.', '') : $value;
+    return $num . ' %/1ខែ';
+}
+
+function formatLoanPeriod($value) {
+    if (empty($value) || $value === null || $value === '') {
+        return '';
+    }
+    return $value . ' ខែ';
+}
+
+function formatServiceFee($value) {
+    if (empty($value) || $value === null || $value === '') {
+        return '';
+    }
+    $num = is_numeric($value) ? number_format((float)$value, 2, '.', '') : $value;
+    return $num . '%';
+}
+
+function formatAmount($value) {
+    if (empty($value) || $value === null || $value === '') {
+        return '';
+    }
+    $num = is_numeric($value) ? number_format((float)$value, 2, '.', ',') : $value;
+    return $num . ' ដុល្លារ';
+}
+
+function getCountryPhoneCode($phone = '') {
+    // Function to determine country phone code based on phone number or other criteria
+    // For now, default to Cambodia (855)
+    // You can extend this to check phone number patterns or other data to determine country
+    
+    // Example: Check if phone starts with specific patterns for different countries
+    // if (preg_match('/^0/', $phone)) {
+    //     return '855'; // Cambodia
+    // }
+    
+    // Default to Cambodia
+    return '855';
+}
+
+function formatPhone($value) {
+    if (empty($value) || $value === null || $value === '') {
+        return '';
+    }
+    
+    // Remove any non-digit characters to get clean phone number
+    $phone = preg_replace('/[^0-9]/', '', $value);
+    
+    if (empty($phone)) {
+        return $value; // Return original if no digits found
+    }
+    
+    // Get country code
+    $countryCode = getCountryPhoneCode($phone);
+    
+    // Format: (855) 010 500 224
+    // Split phone number into groups of 3 digits
+    $formatted = '';
+    for ($i = 0; $i < strlen($phone); $i += 3) {
+        if ($i > 0) $formatted .= ' ';
+        $formatted .= substr($phone, $i, 3);
+    }
+    
+    return '(' . $countryCode . ') ' . trim($formatted);
+}
+
+function truncateWithTitle($value, $maxLength = 30) {
+    if (empty($value)) {
+        return ['display' => '', 'title' => ''];
+    }
+    $str = (string)$value;
+    // Use mbstring if available, otherwise fall back to regular string functions
+    if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+        $length = mb_strlen($str, 'UTF-8');
+        if ($length > $maxLength) {
+            return [
+                'display' => mb_substr($str, 0, $maxLength, 'UTF-8') . '...',
+                'title' => $str
+            ];
+        }
+    } else {
+        // Fallback to regular string functions
+        $length = strlen($str);
+        if ($length > $maxLength) {
+            return [
+                'display' => substr($str, 0, $maxLength) . '...',
+                'title' => $str
+            ];
+        }
+    }
+    return ['display' => $str, 'title' => ''];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -64,7 +163,11 @@ try {
                 <div class="header-right">
                     <div class="user-profile-new" onclick="toggleUserMenu()">
                         <div class="profile-avatar-new">
-                            <img src="https://www.figma.com/api/mcp/asset/594914a2-c283-4d3e-af82-0c46d446c573" alt="Profile" class="avatar-img">
+                            <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" class="avatar-icon">
+                                <circle cx="15" cy="15" r="15" fill="#E5E7EB"/>
+                                <path d="M15 15C17.7614 15 20 12.7614 20 10C20 7.23858 17.7614 5 15 5C12.2386 5 10 7.23858 10 10C10 12.7614 12.2386 15 15 15Z" fill="#6B7280"/>
+                                <path d="M15 17.5C10.5817 17.5 7 19.2386 7 21.5V25H23V21.5C23 19.2386 19.4183 17.5 15 17.5Z" fill="#6B7280"/>
+                            </svg>
                         </div>
                         <span class="user-name-new"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?></span>
                         <svg width="8" height="4" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="chevron-down">
@@ -83,9 +186,6 @@ try {
                         <h2 class="customers-title">Customers</h2>
                     </div>
                     <div class="table-wrapper">
-                        <div id="customersTableLoading" class="table-loading-overlay">
-                            Loading customers...
-                        </div>
                         <table class="customers-table-new" id="customersTable">
                             <thead>
                                 <tr>
@@ -151,28 +251,58 @@ try {
                                             data-phone="<?php echo htmlspecialchars($row['phone'] ?? '', ENT_QUOTES); ?>"
                                             data-ctmaddress="<?php echo htmlspecialchars((string)($row['ctmaddress'] ?? ''), ENT_QUOTES); ?>"
                                         >
-                                            <td><?php echo htmlspecialchars($row['brname'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($row['acno'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($row['ctmid'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($row['disbursedt'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($row['depositacc'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($row['ifcvalue'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($row['loancycle'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($row['coname'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($customerName); ?></td>
-                                            <td><?php echo htmlspecialchars($coBorrowerName); ?></td>
-                                            <td><?php echo htmlspecialchars($row['maturitydt'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($row['period'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($row['type_loan'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($row['adminfeerate'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($row['dbamt'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($row['phone'] ?? ''); ?></td>
-                                            <td>
+                                            <?php
+                                                // Format values and handle truncation with title
+                                                $brname = truncateWithTitle($row['brname'] ?? '', 30);
+                                                $acno = truncateWithTitle($row['acno'] ?? '', 30);
+                                                $ctmid = truncateWithTitle($row['ctmid'] ?? '', 30);
+                                                $disbursedt = truncateWithTitle($row['disbursedt'] ?? '', 30);
+                                                $depositacc = truncateWithTitle($row['depositacc'] ?? '', 30);
+                                                $ifcvalueFormatted = formatInterestRate($row['ifcvalue'] ?? '');
+                                                $loancycle = truncateWithTitle($row['loancycle'] ?? '', 30);
+                                                $coname = truncateWithTitle($row['coname'] ?? '', 30);
+                                                $customerNameFormatted = truncateWithTitle($customerName, 30);
+                                                $coBorrowerNameFormatted = truncateWithTitle($coBorrowerName, 30);
+                                                $maturitydt = truncateWithTitle($row['maturitydt'] ?? '', 30);
+                                                $periodFormatted = formatLoanPeriod($row['period'] ?? '');
+                                                $typeLoan = truncateWithTitle($row['type_loan'] ?? '', 30);
+                                                $adminfeerateFormatted = formatServiceFee($row['adminfeerate'] ?? '');
+                                                $dbamtFormatted = formatAmount($row['dbamt'] ?? '');
+                                                $phoneFormatted = formatPhone($row['phone'] ?? '');
+                                                $addressVal = $row['ctmaddress'] ?? '';
+                                                $addressFormatted = truncateWithTitle((string)$addressVal, 50);
+                                            ?>
+                                            <?php
+                                                // Get full values for title attributes (just the value, no column header)
+                                                $acnoFullTitle = $acno['title'] ? $acno['title'] : $acno['display'];
+                                                $depositaccFullTitle = $depositacc['title'] ? $depositacc['title'] : $depositacc['display'];
+                                                $conameFullTitle = $coname['title'] ? $coname['title'] : $coname['display'];
+                                                $customerNameFullTitle = $customerNameFormatted['title'] ? $customerNameFormatted['title'] : $customerNameFormatted['display'];
+                                                $coBorrowerNameFullTitle = $coBorrowerNameFormatted['title'] ? $coBorrowerNameFormatted['title'] : $coBorrowerNameFormatted['display'];
+                                                // Always use full original value for title (not truncated)
+                                                $typeLoanFullTitle = $row['type_loan'] ?? '';
+                                                $dbamtFullTitle = $dbamtFormatted; // Use formatted value (same as display)
+                                                $addressFullTitle = $addressFormatted['title'] ? $addressFormatted['title'] : $addressFormatted['display'];
+                                            ?>
+                                            <td<?php echo $brname['title'] ? ' title="' . htmlspecialchars($brname['title'], ENT_QUOTES) . '"' : ''; ?>><?php echo htmlspecialchars($brname['display']); ?></td>
+                                            <td title="<?php echo htmlspecialchars($acnoFullTitle, ENT_QUOTES); ?>"><?php echo htmlspecialchars($acno['display']); ?></td>
+                                            <td<?php echo $ctmid['title'] ? ' title="' . htmlspecialchars($ctmid['title'], ENT_QUOTES) . '"' : ''; ?>><?php echo htmlspecialchars($ctmid['display']); ?></td>
+                                            <td<?php echo $disbursedt['title'] ? ' title="' . htmlspecialchars($disbursedt['title'], ENT_QUOTES) . '"' : ''; ?>><?php echo htmlspecialchars($disbursedt['display']); ?></td>
+                                            <td title="<?php echo htmlspecialchars($depositaccFullTitle, ENT_QUOTES); ?>"><?php echo htmlspecialchars($depositacc['display']); ?></td>
+                                            <td><?php echo htmlspecialchars($ifcvalueFormatted); ?></td>
+                                            <td<?php echo $loancycle['title'] ? ' title="' . htmlspecialchars($loancycle['title'], ENT_QUOTES) . '"' : ''; ?>><?php echo htmlspecialchars($loancycle['display']); ?></td>
+                                            <td title="<?php echo htmlspecialchars($conameFullTitle, ENT_QUOTES); ?>"><?php echo htmlspecialchars($coname['display']); ?></td>
+                                            <td title="<?php echo htmlspecialchars($customerNameFullTitle, ENT_QUOTES); ?>"><?php echo htmlspecialchars($customerNameFormatted['display']); ?></td>
+                                            <td title="<?php echo htmlspecialchars($coBorrowerNameFullTitle, ENT_QUOTES); ?>"><?php echo htmlspecialchars($coBorrowerNameFormatted['display']); ?></td>
+                                            <td<?php echo $maturitydt['title'] ? ' title="' . htmlspecialchars($maturitydt['title'], ENT_QUOTES) . '"' : ''; ?>><?php echo htmlspecialchars($maturitydt['display']); ?></td>
+                                            <td><?php echo htmlspecialchars($periodFormatted); ?></td>
+                                            <td title="<?php echo htmlspecialchars($typeLoanFullTitle, ENT_QUOTES); ?>"><?php echo htmlspecialchars($typeLoan['display']); ?></td>
+                                            <td><?php echo htmlspecialchars($adminfeerateFormatted); ?></td>
+                                            <td title="<?php echo htmlspecialchars($dbamtFullTitle, ENT_QUOTES); ?>"><?php echo htmlspecialchars($dbamtFormatted); ?></td>
+                                            <td><?php echo htmlspecialchars($phoneFormatted); ?></td>
+                                            <td title="<?php echo htmlspecialchars($addressFullTitle, ENT_QUOTES); ?>">
                                                 <div class="address-cell">
-                                                    <?php
-                                                        $addressVal = $row['ctmaddress'] ?? '';
-                                                    ?>
-                                                    <p><?php echo htmlspecialchars((string)$addressVal); ?></p>
+                                                    <p><?php echo htmlspecialchars($addressFormatted['display']); ?></p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -182,7 +312,7 @@ try {
                                         <td colspan="17">No customers found.</td>
                                     </tr>
                                 <?php endif; ?>
-                                <tr id="noResultsRow" style="display: none;">
+                                <tr id="noResultsRow" style="display: none; text-align: center;">
                                     <td colspan="17">No matching data found.</td>
                                 </tr>
                         </table>
@@ -190,7 +320,7 @@ try {
                 </div>
                 
                 <div class="pagination-new">
-                    <button class="pagination-btn">
+                    <button class="pagination-btn" id="prevBtn">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12.5 15L7.5 10L12.5 5" stroke="#344054" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -215,7 +345,7 @@ try {
                         </div>
                         <span class="pagination-count">10 of 100</span>
                     </div>
-                    <button class="pagination-btn">
+                    <button class="pagination-btn" id="nextBtn">
                         <span>Next</span>
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M7.5 15L12.5 10L7.5 5" stroke="#344054" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
