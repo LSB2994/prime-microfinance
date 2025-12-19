@@ -1,6 +1,12 @@
 <?php
 /**
- * Root index.php - Redirects to login or customer page
+ * ==========================================================================
+ * Root index.php - Application Entry Point
+ * ==========================================================================
+ * 
+ * Redirects to login page if not authenticated, otherwise redirects to
+ * customer dashboard.
+ * ==========================================================================
  */
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/interceptor.php';

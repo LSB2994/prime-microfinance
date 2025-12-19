@@ -1,6 +1,11 @@
 <?php
 /**
- * Helper functions for formatting and utilities
+ * ==========================================================================
+ * Helper Functions for Formatting and Utilities
+ * ==========================================================================
+ * 
+ * Utility functions for formatting data (currency, dates, phone numbers, etc.)
+ * ==========================================================================
  */
 
 /**

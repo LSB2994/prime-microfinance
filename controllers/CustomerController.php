@@ -1,8 +1,11 @@
 <?php
 /**
+ * ==========================================================================
  * CustomerController
- *
- * MVC controller for the main customer page.
+ * ==========================================================================
+ * 
+ * MVC controller for the main customer dashboard page.
+ * ==========================================================================
  */
 
 require_once __DIR__ . '/../config.php';

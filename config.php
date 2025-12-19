@@ -1,6 +1,12 @@
 <?php
 /**
+ * ==========================================================================
  * Application Configuration
+ * ==========================================================================
+ * 
+ * Central configuration file for PRIME Microfinance application.
+ * Contains database settings, session configuration, paths, and security.
+ * ==========================================================================
  */
 
 // Application Settings
@@ -41,11 +47,20 @@ define('INCLUDES_PATH', ROOT_PATH . '/includes');
 // Security
 define('ENCRYPTION_KEY', 'your-secret-key-change-this-in-production');
 
+// Webill API Configuration
+define('WEBILL_BASE_URL', 'https://apitest-va.webill365.com/kh');
+define('WEBILL_CLIENT_ID', 'aec6fef2e90e26975ec95abd18b1fb77');
+define('WEBILL_CLIENT_SECRET', '13fd6fea8da76e2cde034590b6c2c55a');
+
 // Environment detection
 // Set via environment variable: export APP_ENV=production
 // Or via server config: SetEnv APP_ENV production
 // Options: 'development', 'uat', 'production'
 define('APP_ENV', getenv('APP_ENV') ?: 'development');
+
+// Console Logging Configuration
+// Set to true to enable console logging (automatically enabled in development)
+define('CONSOLE_LOG_ENABLED', APP_ENV !== 'production');
 
 // Oracle Database Configuration by Environment
 if (APP_ENV === 'production') {

@@ -1,103 +1,8 @@
 <?php 
 /* Loan Repayment Modal - Displays loan repayment schedule */
 
-// Fetch schedule data with fixed ACNO
-require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/helpers.php';
-require_once __DIR__ . '/../includes/interceptor.php';
-
-// Fixed ACNO value - change this to the ACNO you want to display
-$fixedAcno = '00020255084000020';
-
-$scheduleRows = [];
-$scheduleError = null;
-$summary = [
-    'totalDays' => 0,
-    'totalPrincipal' => 0,
-    'totalInterest' => 0,
-    'totalAmount' => 0,
-    'initialBalance' => 0
-];
-
-try {
-    $sql = "SELECT 
-                DUENO,
-                DAYNAME,
-                DUEDATE,
-                PERIOD,
-                PRINCIPAL,
-                INTEREST,
-                TOTALAMOUNT,
-                BL
-            FROM VW_CREDIT_SCHEDULE
-            WHERE ACNO = :acno
-            ORDER BY DUENO";
-    
-    $scheduleRows = oracleFetchAll($sql, ['acno' => $fixedAcno]);
-    
-    // Calculate summary totals
-    foreach ($scheduleRows as $row) {
-        if (isset($row['period']) && is_numeric($row['period'])) {
-            $summary['totalDays'] += (int)$row['period'];
-        }
-        if (isset($row['principal']) && is_numeric($row['principal'])) {
-            $summary['totalPrincipal'] += (float)$row['principal'];
-        }
-        if (isset($row['interest']) && is_numeric($row['interest'])) {
-            $summary['totalInterest'] += (float)$row['interest'];
-        }
-        if (isset($row['totalamount']) && is_numeric($row['totalamount'])) {
-            $summary['totalAmount'] += (float)$row['totalamount'];
-        }
-    }
-    
-    // Get initial balance (first row's BL + first PRINCIPAL)
-    if (!empty($scheduleRows) && isset($scheduleRows[0]['bl']) && is_numeric($scheduleRows[0]['bl'])) {
-        $firstPrincipal = isset($scheduleRows[0]['principal']) && is_numeric($scheduleRows[0]['principal']) 
-            ? (float)$scheduleRows[0]['principal'] 
-            : 0;
-        $firstBl = (float)$scheduleRows[0]['bl'];
-        $summary['initialBalance'] = $firstBl + $firstPrincipal;
-    }
-} catch (Exception $e) {
-    $scheduleError = $e->getMessage();
-    logError('Failed to fetch loan schedule in modal', [
-        'error' => $e->getMessage(),
-        'acno' => $fixedAcno,
-        'file' => __FILE__,
-        'line' => $e->getLine()
-    ]);
-}
-
-// Helper function to format date (DD-MM-YY)
-function formatScheduleDateDisplay($dateString) {
-    if (empty($dateString) || $dateString === null || $dateString === '') {
-        return '-';
-    }
-    try {
-        $timestamp = strtotime($dateString);
-        if ($timestamp === false) {
-            return $dateString;
-        }
-        $day = str_pad(date('d', $timestamp), 2, '0', STR_PAD_LEFT);
-        $month = str_pad(date('m', $timestamp), 2, '0', STR_PAD_LEFT);
-        $year = substr(date('Y', $timestamp), -2);
-        return "{$day}-{$month}-{$year}";
-    } catch (Exception $e) {
-        return $dateString;
-    }
-}
-
-// Helper function to format number
-function formatScheduleNumberDisplay($value, $decimals = 2) {
-    if ($value === null || $value === '' || $value === '-') {
-        return '-';
-    }
-    if (!is_numeric($value)) {
-        return $value;
-    }
-    return number_format((float)$value, $decimals, '.', '');
-}
+// Modal is now dynamically loaded via JavaScript API
+// No need to fetch schedule data here - it will be loaded when modal opens
 ?>
 
 <style>
@@ -105,9 +10,13 @@ function formatScheduleNumberDisplay($value, $decimals = 2) {
     
     /* Modal container styling - override default modal styles */
     #loanModal.modal {
-        display: flex !important;
+        display: none;
         align-items: center;
         justify-content: center;
+    }
+    
+    #loanModal.modal.active {
+        display: flex !important;
     }
     
     #loanModal .modal-content.loan-schedule-modal-new {
@@ -362,6 +271,13 @@ function formatScheduleNumberDisplay($value, $decimals = 2) {
         justify-content: center;
         color: #000;
         font-size: 8px;
+        overflow: hidden;
+    }
+    
+    .loan-schedule-modal-new .qr-code-new img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
     }
     
     .loan-schedule-modal-new .main-title-new {
@@ -841,7 +757,9 @@ function formatScheduleNumberDisplay($value, $decimals = 2) {
                 <div class="qr-section-new">
                     <h3>KHORN</h3>
                     <p>Prime Microfinance</p>
-                    <div class="qr-code-new">QR CODE</div>
+                    <div class="qr-code-new" id="qr-code-image">
+                        <div style="text-align: center; padding: 10px; color: #999;">QR CODE</div>
+                    </div>
                 </div>
             </div>
             
@@ -934,66 +852,12 @@ function formatScheduleNumberDisplay($value, $decimals = 2) {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if ($scheduleError): ?>
-                            <tr>
-                                <td colspan="8" style="text-align: center; color: red; padding: 20px;">
-                                    Error loading schedule: <?php echo htmlspecialchars($scheduleError); ?>
-                                </td>
-                            </tr>
-                        <?php elseif (empty($scheduleRows)): ?>
-                            <tr>
-                                <td colspan="8" style="text-align: center; padding: 20px;">
-                                    No schedule data found for ACNO: <?php echo htmlspecialchars($fixedAcno); ?>
-                                </td>
-                            </tr>
-                        <?php else: ?>
-                            <!-- Initial balance row -->
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td class="text-right-new"><?php echo formatScheduleNumberDisplay($summary['initialBalance']); ?></td>
-                                <td></td>
-                            </tr>
-                            
-                            <?php foreach ($scheduleRows as $index => $row): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($row['dueno'] ?? ($index + 1)); ?></td>
-                                    <td class="text-left-new">
-                                        <?php 
-                                        $dayName = isset($row['dayname']) ? htmlspecialchars($row['dayname']) : '';
-                                        $dueDate = isset($row['duedate']) ? formatScheduleDateDisplay($row['duedate']) : '-';
-                                        if ($dayName && $dueDate !== '-') {
-                                            echo $dayName . ', ' . $dueDate;
-                                        } else {
-                                            echo $dueDate;
-                                        }
-                                        ?>
-                                    </td>
-                                    <td><?php echo formatScheduleNumberDisplay($row['period'] ?? '', 0); ?></td>
-                                    <td class="text-right-new"><?php echo formatScheduleNumberDisplay($row['principal'] ?? ''); ?></td>
-                                    <td class="text-right-new"><?php echo formatScheduleNumberDisplay($row['interest'] ?? ''); ?></td>
-                                    <td class="text-right-new"><?php echo formatScheduleNumberDisplay($row['totalamount'] ?? ''); ?></td>
-                                    <td class="text-right-new"><?php echo formatScheduleNumberDisplay($row['bl'] ?? ''); ?></td>
-                                    <td></td>
-                                </tr>
-                            <?php endforeach; ?>
-                            
-                            <!-- Summary row -->
-                            <tr class="summary-row-new">
-                                <td>សរុប :</td>
-                                <td></td>
-                                <td><?php echo formatScheduleNumberDisplay($summary['totalDays'], 0); ?></td>
-                                <td class="text-right-new"><?php echo formatScheduleNumberDisplay($summary['totalPrincipal']); ?></td>
-                                <td class="text-right-new"><?php echo formatScheduleNumberDisplay($summary['totalInterest']); ?></td>
-                                <td class="text-right-new"><?php echo formatScheduleNumberDisplay($summary['totalAmount']); ?></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                        <?php endif; ?>
+                        <!-- Schedule will be loaded dynamically via JavaScript -->
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 20px;">
+                                Click on a customer row to load repayment schedule
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -1015,7 +879,7 @@ function formatScheduleNumberDisplay($value, $decimals = 2) {
                     </div>
                     <div class="footer-right-new">
                         <div>ស្នាមមេដៃអ្នកទទួលប្រាក់</div>
-                        <div id="detail-customer-name-footer">ឌុក ផល្លី / Duk Phally</div>
+                        <div id="detail-customer-name-footer"></div>
                     </div>
                 </div>
                 

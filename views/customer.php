@@ -39,7 +39,7 @@ try {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Kantumruy+Pro:wght@400;500;600&family=Noto+Serif+Khmer:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&family=Nunito:wght@400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo baseUrl('/assets/css/style.css'); ?>">
 </head>
-<body>
+<body data-base-url="<?php echo htmlspecialchars(baseUrl(''), ENT_QUOTES); ?>">
     <div class="dashboard-container-new">
         <div class="sidebar-new">
             <div class="logo-section">

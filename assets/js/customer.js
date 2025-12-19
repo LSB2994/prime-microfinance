@@ -38,12 +38,17 @@ function showLoanRepayment(rowEl) {
     setText('detail-disburse-date', d.disbursedt || '');
     setText('detail-deposit-account', d.depositacc || '');
 
-    if (d.ifcvalue != null) {
-        setText('detail-interest-rate', d.ifcvalue);
+    if (d.ifcvalue != null && d.ifcvalue !== '') {
+        const interestRate = formatInterestRate(d.ifcvalue);
+        setText('detail-interest-rate', interestRate);
+    } else {
+        setText('detail-interest-rate', '');
     }
 
-    if (d.loancycle != null) {
+    if (d.loancycle != null && d.loancycle !== '') {
         setText('detail-loan-cycle', d.loancycle);
+    } else {
+        setText('detail-loan-cycle', '');
     }
 
     setText('detail-customer-name', d.customerName || '');
@@ -51,22 +56,328 @@ function showLoanRepayment(rowEl) {
 
     setText('detail-maturity-date', d.maturitydt || '');
 
-    if (d.period != null) {
-        setText('detail-period', d.period);
+    if (d.period != null && d.period !== '') {
+        const period = formatLoanPeriod(d.period);
+        setText('detail-period', period);
+    } else {
+        setText('detail-period', '');
     }
 
     setText('detail-loan-type', d.typeLoan || '');
 
-    if (d.adminfeerate != null) {
-        setText('detail-service-fee', d.adminfeerate);
+    if (d.adminfeerate != null && d.adminfeerate !== '') {
+        const serviceFee = formatServiceFee(d.adminfeerate);
+        setText('detail-service-fee', serviceFee);
+    } else {
+        setText('detail-service-fee', '');
     }
 
-    if (d.dbamt != null) {
-        setText('detail-amount', d.dbamt);
+    if (d.dbamt != null && d.dbamt !== '') {
+        const amount = formatAmount(d.dbamt);
+        setText('detail-amount', amount);
+    } else {
+        setText('detail-amount', '');
+    }
+    
+    if (d.phone != null && d.phone !== '') {
+        const phone = formatPhone(d.phone);
+        setText('detail-phone', phone);
+    } else {
+        setText('detail-phone', '');
     }
 
-    setText('detail-phone', d.phone || '');
     setText('detail-address', d.ctmaddress || '');
+    
+    // Update footer customer name
+    setText('detail-customer-name-footer', d.customerName || '');
+
+    // Fetch and load repayment schedule dynamically
+    if (d.acno) {
+        loadRepaymentSchedule(d.acno);
+    } else {
+        // Clear schedule if no ACNO
+        clearRepaymentSchedule();
+    }
+    
+    // Generate and load QR code
+    if (d.customerName && d.acno) {
+        generateQRCode({
+            payer_name: d.customerName,
+            parent_account_no: d.acno,
+            amount: d.dbamt || 0,
+            currency_code: 'USD'
+        });
+    } else {
+        // Clear QR code if no customer name or ACNO
+        clearQRCode();
+    }
+}
+
+// Load repayment schedule from database (not an API, just database query)
+function loadRepaymentSchedule(acno) {
+    const tbody = document.querySelector('#loanModal .payment-table-new tbody');
+    if (!tbody) return;
+
+    // Show loading state
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">Loading schedule...</td></tr>';
+
+    // Get data from database (not an API, just database query)
+    const dataUrl = '/loan-schedule.php?acno=' + encodeURIComponent(acno);
+    
+    console.log('Fetching schedule data from database:', dataUrl);
+
+    fetch(dataUrl)
+        .then(response => {
+            console.log('Database query response status:', response.status);
+            if (!response.ok) {
+                return response.text().then(text => {
+                    let errorMsg = 'Failed to fetch schedule (Status: ' + response.status + ')';
+                    try {
+                        const json = JSON.parse(text);
+                        errorMsg = json.message || errorMsg;
+                    } catch (e) {
+                        if (text) {
+                            errorMsg += ' - ' + text.substring(0, 100);
+                        }
+                    }
+                    throw new Error(errorMsg);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.data) {
+                renderRepaymentSchedule(data.data.schedule, data.data.summary);
+            } else {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red; padding: 20px;">Error loading schedule: ' + (data.message || 'Unknown error') + '</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading repayment schedule from database:', error);
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red; padding: 20px;">Error loading schedule: ' + error.message + '</td></tr>';
+        });
+}
+
+// Render repayment schedule table
+function renderRepaymentSchedule(schedule, summary) {
+    const tbody = document.querySelector('#loanModal .payment-table-new tbody');
+    if (!tbody) return;
+
+    if (!schedule || schedule.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No schedule data found.</td></tr>';
+        return;
+    }
+
+    let html = '';
+
+    // Initial balance row
+    html += '<tr>';
+    html += '<td></td>';
+    html += '<td></td>';
+    html += '<td></td>';
+    html += '<td></td>';
+    html += '<td></td>';
+    html += '<td></td>';
+    html += '<td class="text-right-new">' + formatScheduleNumber(summary.initialBalance) + '</td>';
+    html += '<td></td>';
+    html += '</tr>';
+
+    // Schedule rows
+    schedule.forEach((row, index) => {
+        const dayName = row.dayname || '';
+        const dueDate = row.duedate || '-';
+        const dateDisplay = dayName && dueDate !== '-' ? dayName + ', ' + dueDate : dueDate;
+
+        html += '<tr>';
+        html += '<td>' + (row.dueno || (index + 1)) + '</td>';
+        html += '<td class="text-left-new">' + dateDisplay + '</td>';
+        html += '<td>' + formatScheduleNumber(row.period || '', 0) + '</td>';
+        html += '<td class="text-right-new">' + formatScheduleNumber(row.principal || '') + '</td>';
+        html += '<td class="text-right-new">' + formatScheduleNumber(row.interest || '') + '</td>';
+        html += '<td class="text-right-new">' + formatScheduleNumber(row.totalamount || '') + '</td>';
+        html += '<td class="text-right-new">' + formatScheduleNumber(row.bl || '') + '</td>';
+        html += '<td></td>';
+        html += '</tr>';
+    });
+
+    // Summary row
+    html += '<tr class="summary-row-new">';
+    html += '<td>សរុប :</td>';
+    html += '<td></td>';
+    html += '<td>' + formatScheduleNumber(summary.totalDays || 0, 0) + '</td>';
+    html += '<td class="text-right-new">' + formatScheduleNumber(summary.totalPrincipal || 0) + '</td>';
+    html += '<td class="text-right-new">' + formatScheduleNumber(summary.totalInterest || 0) + '</td>';
+    html += '<td class="text-right-new">' + formatScheduleNumber(summary.totalAmount || 0) + '</td>';
+    html += '<td></td>';
+    html += '<td></td>';
+    html += '</tr>';
+
+    tbody.innerHTML = html;
+}
+
+// Clear repayment schedule
+function clearRepaymentSchedule() {
+    const tbody = document.querySelector('#loanModal .payment-table-new tbody');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No schedule data available.</td></tr>';
+    }
+}
+
+// Format number for schedule display
+function formatScheduleNumber(value, decimals = 2) {
+    if (value === null || value === '' || value === '-') {
+        return '-';
+    }
+    if (!isNumeric(value)) {
+        return value;
+    }
+    return parseFloat(value).toFixed(decimals);
+}
+
+// Check if value is numeric
+function isNumeric(value) {
+    return !isNaN(parseFloat(value)) && isFinite(value);
+}
+
+// Format interest rate
+function formatInterestRate(value) {
+    if (!value || value === '') return '';
+    const num = isNumeric(value) ? parseFloat(value).toFixed(2) : value;
+    return num + ' %/1ខែ';
+}
+
+// Format loan period
+function formatLoanPeriod(value) {
+    if (!value || value === '') return '';
+    return value + ' ខែ';
+}
+
+// Format service fee
+function formatServiceFee(value) {
+    if (!value || value === '') return '';
+    const num = isNumeric(value) ? parseFloat(value).toFixed(2) : value;
+    return num + '%';
+}
+
+// Format amount
+function formatAmount(value) {
+    if (!value || value === '') return '';
+    const num = isNumeric(value) ? parseFloat(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : value;
+    return num + ' ដុល្លារ';
+}
+
+// Format phone number
+function formatPhone(value) {
+    if (!value || value === '') return '';
+    // Remove any non-digit characters
+    const phone = value.replace(/\D/g, '');
+    if (!phone) return value;
+    
+    // Format: (855) 010 500 224
+    let formatted = '';
+    for (let i = 0; i < phone.length; i += 3) {
+        if (i > 0) formatted += ' ';
+        formatted += phone.substr(i, 3);
+    }
+    return '(855) ' + formatted.trim();
+}
+
+// Generate QR code using Webill API
+function generateQRCode(params) {
+    console.log('=== QR CODE GENERATION: Starting ===');
+    
+    const qrCodeElement = document.getElementById('qr-code-image');
+    if (!qrCodeElement) {
+        console.error('QR code element not found');
+        return;
+    }
+    
+    // Show loading state
+    qrCodeElement.innerHTML = '<div style="text-align: center; padding: 10px; color: #666;">Loading QR...</div>';
+    
+    // Call Webill API via PHP proxy (this IS an external API call)
+    // Webill API requires POST with JSON body
+    const requestData = {
+        payer_name: params.payer_name || '',
+        parent_account_no: '1120000805758',
+        payment_type: params.payment_type || '0',
+        currency_code: params.currency_code || 'KHR',
+        amount: params.amount || 0,
+        remark: params.remark || '',
+        khqr_name: params.khqr_name || '',
+        request_id: params.request_id || 'req_' + Date.now()
+    };
+    
+    console.log('QR Request Data:', requestData);
+    
+    // Call Webill API via PHP proxy (POST with JSON body)
+    const apiUrl = '/api/qr-collection.php';
+    console.log('Making API request to:', apiUrl);
+    console.log('Note: Server will handle token request automatically');
+    console.log('  - Token endpoint: /api/wbi/client/v1/auth/token');
+    console.log('  - Token will be cached or requested as needed');
+    
+    const requestStartTime = Date.now();
+    
+    // Make POST request with JSON body
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+    })
+        .then(response => {
+            const requestDuration = Date.now() - requestStartTime;
+            console.log('API Response received');
+            console.log('  - Status:', response.status, response.statusText);
+            console.log('  - Duration:', requestDuration + 'ms');
+            
+            if (!response.ok) {
+                console.error('API Error: Response not OK -', response.status);
+                throw new Error('Failed to generate QR code');
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            console.log('QR Code Response:', {
+                success: data.success,
+                hasData: !!data.data,
+                hasQRCode: !!(data.data && data.data.khqr_data_base64)
+            });
+            
+            if (data.success && data.data && data.data.khqr_data_base64) {
+                console.log('QR Code generated successfully');
+                // Display QR code image
+                const img = document.createElement('img');
+                img.src = data.data.khqr_data_base64;
+                img.alt = 'QR Code';
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'contain';
+                
+                qrCodeElement.innerHTML = '';
+                qrCodeElement.appendChild(img);
+                console.log('=== QR CODE GENERATION: SUCCESS ===');
+            } else {
+                console.warn('QR Code generation failed - no QR data in response');
+                qrCodeElement.innerHTML = '<div style="text-align: center; padding: 10px; color: #999;">QR Code</div>';
+            }
+        })
+        .catch(error => {
+            console.error('=== QR CODE GENERATION: ERROR ===');
+            console.error('Error:', error.message);
+            qrCodeElement.innerHTML = '<div style="text-align: center; padding: 10px; color: #999;">QR Code</div>';
+        });
+}
+
+// Clear QR code
+function clearQRCode() {
+    const qrCodeElement = document.getElementById('qr-code-image');
+    if (qrCodeElement) {
+        qrCodeElement.innerHTML = '<div style="text-align: center; padding: 10px; color: #999;">QR Code</div>';
+    }
 }
 
 // Close loan repayment modal

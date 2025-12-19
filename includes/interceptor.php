@@ -1,19 +1,27 @@
 <?php
 /**
- * Helper / interceptor functions
- *
+ * ==========================================================================
+ * Helper / Interceptor Functions
+ * ==========================================================================
+ * 
+ * Authentication, authorization, and utility functions for the application.
  * Moved from includes/functions.php
+ * ==========================================================================
  */
 
 /**
  * Check if user is logged in
+ * 
+ * @return bool True if user is logged in, false otherwise
  */
 function isLoggedIn() {
     return isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
 }
 
 /**
- * Require login - redirect if not logged in
+ * Require login - redirect to login page if not logged in
+ * 
+ * @return void
  */
 function requireLogin() {
     if (!isLoggedIn()) {
@@ -22,7 +30,10 @@ function requireLogin() {
 }
 
 /**
- * Get base URL
+ * Get base URL with optional path
+ * 
+ * @param string $path Optional path to append to base URL
+ * @return string Full URL
  */
 function baseUrl($path = '') {
     return BASE_URL . $path;
@@ -41,7 +52,10 @@ function redirect($url) {
 }
 
 /**
- * Sanitize input
+ * Sanitize input data
+ * 
+ * @param string $data Data to sanitize
+ * @return string Sanitized data
  */
 function sanitize($data) {
     return htmlspecialchars(strip_tags(trim($data)));
@@ -55,6 +69,11 @@ function setFlashMessage($type, $message) {
     $_SESSION['flash_message'] = $message;
 }
 
+/**
+ * Get and clear flash message
+ * 
+ * @return array|null Array with 'type' and 'message' keys, or null if no message
+ */
 function getFlashMessage() {
     if (isset($_SESSION['flash_message'])) {
         $type = $_SESSION['flash_type'] ?? 'info';
@@ -74,14 +93,20 @@ function formatCurrency($amount) {
 }
 
 /**
- * Format date
+ * Format date string
+ * 
+ * @param string $date Date string to format
+ * @param string $format Date format (default: 'Y-m-d')
+ * @return string Formatted date
  */
 function formatDate($date, $format = 'Y-m-d') {
     return date($format, strtotime($date));
 }
 
 /**
- * Generate CSRF token
+ * Generate CSRF token for form protection
+ * 
+ * @return string CSRF token
  */
 function generateCsrfToken() {
     if (!isset($_SESSION['csrf_token'])) {
@@ -92,6 +117,9 @@ function generateCsrfToken() {
 
 /**
  * Verify CSRF token
+ * 
+ * @param string $token Token to verify
+ * @return bool True if token is valid, false otherwise
  */
 function verifyCsrfToken($token) {
     if (!isset($_SESSION['csrf_token'])) {
@@ -102,6 +130,9 @@ function verifyCsrfToken($token) {
 
 /**
  * Validate email format
+ * 
+ * @param string $email Email address to validate
+ * @return bool True if valid email, false otherwise
  */
 function validateEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
@@ -109,6 +140,10 @@ function validateEmail($email) {
 
 /**
  * Validate password strength
+ * 
+ * @param string $password Password to validate
+ * @param int $minLength Minimum password length (default: 6)
+ * @return bool True if password meets requirements, false otherwise
  */
 function validatePassword($password, $minLength = 6) {
     if (strlen($password) < $minLength) {
@@ -119,6 +154,10 @@ function validatePassword($password, $minLength = 6) {
 
 /**
  * Log error to file
+ * 
+ * @param string $message Error message
+ * @param array $context Additional context data
+ * @return void
  */
 function logError($message, $context = []) {
     $logFile = __DIR__ . '/../logs/app-errors.log';
@@ -137,6 +176,8 @@ function logError($message, $context = []) {
 
 /**
  * Get client IP address
+ * 
+ * @return string Client IP address or 'unknown'
  */
 function getClientIp() {
     $ipKeys = ['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'];

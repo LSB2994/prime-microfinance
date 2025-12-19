@@ -1,6 +1,11 @@
 <?php
 /**
- * Oracle database helper functions
+ * ==========================================================================
+ * Oracle Database Helper Functions
+ * ==========================================================================
+ * 
+ * Functions for connecting to and querying Oracle database.
+ * ==========================================================================
  */
 
 require_once __DIR__ . '/../config.php';
