@@ -100,15 +100,14 @@ function showLoanRepayment(rowEl) {
     }
     
     // Generate and load QR code
-    if (d.customerName && d.acno) {
+    if (d.customerName) {
         generateQRCode({
             payer_name: d.customerName,
-            parent_account_no: d.acno,
             amount: d.dbamt || 0,
-            currency_code: 'USD'
+            currency_code: 'KHR'
         });
     } else {
-        // Clear QR code if no customer name or ACNO
+        // Clear QR code if no customer name
         clearQRCode();
     }
 }
@@ -282,24 +281,24 @@ function formatPhone(value) {
     return '(855) ' + formatted.trim();
 }
 
-// Generate QR code using Webill API
+// Generate QR code using Webill API (direct third-party API calls)
 function generateQRCode(params) {
     console.log('=== QR CODE GENERATION: Starting ===');
+    console.log('Step 1: Initializing QR code generation');
     
     const qrCodeElement = document.getElementById('qr-code-image');
     if (!qrCodeElement) {
-        console.error('QR code element not found');
+        console.error('Step 1 ERROR: QR code element not found');
         return;
     }
     
     // Show loading state
-    qrCodeElement.innerHTML = '<div style="text-align: center; padding: 10px; color: #666;">Loading QR...</div>';
+    qrCodeElement.innerHTML = '<div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">Loading...</div>';
     
-    // Call Webill API via PHP proxy (this IS an external API call)
-    // Webill API requires POST with JSON body
-    const requestData = {
+    // Prepare QR generation request data
+    const qrRequestData = {
         payer_name: params.payer_name || '',
-        parent_account_no: '1120000805758',
+        parent_account_no: '1120000805758', // Fixed value
         payment_type: params.payment_type || '0',
         currency_code: params.currency_code || 'KHR',
         amount: params.amount || 0,
@@ -308,67 +307,184 @@ function generateQRCode(params) {
         request_id: params.request_id || 'req_' + Date.now()
     };
     
-    console.log('QR Request Data:', requestData);
+    console.log('Step 1: QR Request Data prepared:', qrRequestData);
     
-    // Call Webill API via PHP proxy (POST with JSON body)
-    const apiUrl = '/api/qr-collection.php';
-    console.log('Making API request to:', apiUrl);
-    console.log('Note: Server will handle token request automatically');
-    console.log('  - Token endpoint: /api/wbi/client/v1/auth/token');
-    console.log('  - Token will be cached or requested as needed');
+    // Step 2: Request Token from third-party API
+    console.log('Step 2: Requesting token from third-party API');
+    console.log('  - Token API URL: https://apitest-va.webill365.com/kh/api/wbi/client/v1/auth/token');
     
-    const requestStartTime = Date.now();
+    const tokenRequestData = {
+        client_id: 'aec6fef2e90e26975ec95abd18b1fb77',
+        client_secret: '13fd6fea8da76e2cde034590b6c2c55a'
+    };
     
-    // Make POST request with JSON body
-    fetch(apiUrl, {
+    console.log('Step 2: Token request payload:', {
+        client_id: tokenRequestData.client_id,
+        client_secret: '***' // Hide secret in logs
+    });
+    
+    const tokenRequestStartTime = Date.now();
+    
+    // Step 2.1: Call token API
+    fetch('https://apitest-va.webill365.com/kh/api/wbi/client/v1/auth/token', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': '*/*'
         },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify(tokenRequestData)
     })
         .then(response => {
-            const requestDuration = Date.now() - requestStartTime;
-            console.log('API Response received');
+            const tokenRequestDuration = Date.now() - tokenRequestStartTime;
+            console.log('Step 2.1: Token API response received');
             console.log('  - Status:', response.status, response.statusText);
-            console.log('  - Duration:', requestDuration + 'ms');
+            console.log('  - Duration:', tokenRequestDuration + 'ms');
+            console.log('  - Headers:', Object.fromEntries(response.headers.entries()));
             
             if (!response.ok) {
-                console.error('API Error: Response not OK -', response.status);
-                throw new Error('Failed to generate QR code');
+                console.error('Step 2.1 ERROR: Token API response not OK -', response.status);
+                return response.text().then(text => {
+                    console.error('Step 2.1 ERROR: Response body:', text);
+                    throw new Error('Failed to get token: ' + response.status);
+                });
             }
             
             return response.json();
         })
-        .then(data => {
-            console.log('QR Code Response:', {
-                success: data.success,
-                hasData: !!data.data,
-                hasQRCode: !!(data.data && data.data.khqr_data_base64)
+        .then(tokenData => {
+            console.log('Step 2.2: Token response parsed:', {
+                hasData: !!tokenData.data,
+                hasAccessToken: !!(tokenData.data && tokenData.data.access_token),
+                tokenType: tokenData.data?.token_type || 'N/A',
+                expiresIn: tokenData.data?.expires_in || 'N/A'
             });
             
-            if (data.success && data.data && data.data.khqr_data_base64) {
-                console.log('QR Code generated successfully');
-                // Display QR code image
-                const img = document.createElement('img');
-                img.src = data.data.khqr_data_base64;
-                img.alt = 'QR Code';
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'contain';
-                
-                qrCodeElement.innerHTML = '';
-                qrCodeElement.appendChild(img);
-                console.log('=== QR CODE GENERATION: SUCCESS ===');
-            } else {
-                console.warn('QR Code generation failed - no QR data in response');
-                qrCodeElement.innerHTML = '<div style="text-align: center; padding: 10px; color: #999;">QR Code</div>';
+            if (!tokenData.data || !tokenData.data.access_token) {
+                console.error('Step 2.2 ERROR: No access token in response');
+                console.error('Step 2.2 ERROR: Full response:', tokenData);
+                throw new Error('No access token received');
             }
+            
+            const accessToken = tokenData.data.access_token;
+            const tokenType = tokenData.data.token_type || 'Bearer';
+            
+            console.log('Step 2.3: Token extracted successfully');
+            console.log('  - Token type:', tokenType);
+            console.log('  - Token length:', accessToken.length);
+            console.log('  - Token preview:', accessToken.substring(0, 20) + '...');
+            
+            // Step 3: Generate QR Code using the token
+            console.log('Step 3: Generating QR code with token');
+            console.log('  - QR API URL: https://apitest-va.webill365.com/kh/api/wbi/client/v1/qr-collections');
+            console.log('  - QR Request Data:', qrRequestData);
+            
+            const qrRequestStartTime = Date.now();
+            
+            // Step 3.1: Call generateQR API with token
+            return fetch('https://apitest-va.webill365.com/kh/api/wbi/client/v1/qr-collections', {
+                method: 'POST',
+                headers: {
+                    'Authorization': tokenType + ' ' + accessToken,
+                    'Content-Type': 'application/json',
+                    'Accept': '*/*'
+                },
+                body: JSON.stringify(qrRequestData)
+            })
+                .then(qrResponse => {
+                    const qrRequestDuration = Date.now() - qrRequestStartTime;
+                    console.log('Step 3.1: QR API response received');
+                    console.log('  - Status:', qrResponse.status, qrResponse.statusText);
+                    console.log('  - Duration:', qrRequestDuration + 'ms');
+                    console.log('  - Headers:', Object.fromEntries(qrResponse.headers.entries()));
+                    
+                    if (!qrResponse.ok) {
+                        console.error('Step 3.1 ERROR: QR API response not OK -', qrResponse.status);
+                        return qrResponse.text().then(text => {
+                            console.error('Step 3.1 ERROR: Response body:', text);
+                            throw new Error('Failed to generate QR code: ' + qrResponse.status);
+                        });
+                    }
+                    
+                    return qrResponse.json();
+                })
+                .then(qrData => {
+                    console.log('Step 3.2: QR response parsed:', {
+                        hasData: !!qrData.data,
+                        hasKhqrDataBase64: !!(qrData.data && qrData.data.khqr_data_base64),
+                        responseKeys: qrData.data ? Object.keys(qrData.data) : []
+                    });
+                    
+                    // Handle nested data structure
+                    let qrCodeBase64 = null;
+                    if (qrData.data) {
+                        if (qrData.data.data && qrData.data.data.khqr_data_base64) {
+                            // Nested structure: { data: { data: { khqr_data_base64: ... } } }
+                            qrCodeBase64 = qrData.data.data.khqr_data_base64;
+                            console.log('Step 3.2: Found nested data structure');
+                        } else if (qrData.data.khqr_data_base64) {
+                            // Direct structure: { data: { khqr_data_base64: ... } }
+                            qrCodeBase64 = qrData.data.khqr_data_base64;
+                            console.log('Step 3.2: Found direct data structure');
+                        }
+                    }
+                    
+                    if (!qrCodeBase64) {
+                        console.error('Step 3.2 ERROR: No QR code data found in response');
+                        console.error('Step 3.2 ERROR: Full response:', qrData);
+                        throw new Error('No QR code data in response');
+                    }
+                    
+                    console.log('Step 3.3: QR code base64 data extracted');
+                    console.log('  - Base64 length:', qrCodeBase64.length);
+                    console.log('  - Base64 preview:', qrCodeBase64.substring(0, 50) + '...');
+                    
+                    // Step 4: Decode and display QR code
+                    console.log('Step 4: Decoding and displaying QR code');
+                    
+                    // Check if base64 string already has data URL prefix
+                    let qrImageSrc = qrCodeBase64;
+                    if (!qrCodeBase64.startsWith('data:image')) {
+                        // Add data URL prefix if not present
+                        qrImageSrc = 'data:image/png;base64,' + qrCodeBase64;
+                        console.log('Step 4.1: Added data URL prefix to base64 string');
+                    } else {
+                        console.log('Step 4.1: Base64 string already has data URL prefix');
+                    }
+                    
+                    // Create and display image
+                    const img = document.createElement('img');
+                    img.src = qrImageSrc;
+                    img.alt = 'QR Code';
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'contain';
+                    
+                    // Handle image load
+                    img.onload = function() {
+                        console.log('Step 4.2: QR code image loaded successfully');
+                        console.log('  - Image dimensions:', img.naturalWidth + 'x' + img.naturalHeight);
+                    };
+                    
+                    img.onerror = function() {
+                        console.error('Step 4.2 ERROR: Failed to load QR code image');
+                        console.error('  - Image src length:', qrImageSrc.length);
+                        console.error('  - Image src preview:', qrImageSrc.substring(0, 100) + '...');
+                    };
+                    
+                    qrCodeElement.innerHTML = '';
+                    qrCodeElement.appendChild(img);
+                    
+                    console.log('Step 4.3: QR code displayed in modal');
+                    console.log('=== QR CODE GENERATION: SUCCESS ===');
+                });
         })
         .catch(error => {
             console.error('=== QR CODE GENERATION: ERROR ===');
-            console.error('Error:', error.message);
-            qrCodeElement.innerHTML = '<div style="text-align: center; padding: 10px; color: #999;">QR Code</div>';
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack
+            });
+            qrCodeElement.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc2626; font-size: 12px;">Error loading QR</div>';
         });
 }
 
@@ -376,7 +492,7 @@ function generateQRCode(params) {
 function clearQRCode() {
     const qrCodeElement = document.getElementById('qr-code-image');
     if (qrCodeElement) {
-        qrCodeElement.innerHTML = '<div style="text-align: center; padding: 10px; color: #999;">QR Code</div>';
+        qrCodeElement.innerHTML = '<div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">QR Code</div>';
     }
 }
 

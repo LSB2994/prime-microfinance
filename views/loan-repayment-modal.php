@@ -240,44 +240,35 @@
     }
     
     .loan-schedule-modal-new .qr-section-new {
-        background: #dc2626;
-        color: white;
-        padding: 10px;
-        border-radius: 4px;
+        background: transparent;
+        padding: 0;
         text-align: center;
-        min-width: 120px;
         flex-shrink: 0;
-    }
-    
-    .loan-schedule-modal-new .qr-section-new h3 {
-        font-size: 12px;
-        font-weight: 700;
-        margin-bottom: 6px;
-    }
-    
-    .loan-schedule-modal-new .qr-section-new p {
-        font-size: 9px;
-        margin-bottom: 8px;
-    }
-    
-    .loan-schedule-modal-new .qr-code-new {
-        width: 70px;
-        height: 70px;
-        background: white;
-        margin: 0 auto;
-        border-radius: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #000;
-        font-size: 8px;
+    }
+    
+    .loan-schedule-modal-new .qr-code-new {
+        width: 150px;
+        height: 150px;
+        background: white;
+        margin: 0;
+        padding: 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
     
     .loan-schedule-modal-new .qr-code-new img {
         width: 100%;
         height: 100%;
         object-fit: contain;
+        display: block;
     }
     
     .loan-schedule-modal-new .main-title-new {
@@ -622,6 +613,12 @@
         .loan-schedule-modal-new .qr-section-new {
             width: 100%;
             min-width: auto;
+            justify-content: center;
+        }
+        
+        .loan-schedule-modal-new .qr-code-new {
+            width: 120px;
+            height: 120px;
         }
         
         .loan-schedule-modal-new .table-wrapper-new {
@@ -755,8 +752,6 @@
                     </div>
                 </div>
                 <div class="qr-section-new">
-                    <h3>KHORN</h3>
-                    <p>Prime Microfinance</p>
                     <div class="qr-code-new" id="qr-code-image">
                         <div style="text-align: center; padding: 10px; color: #999;">QR CODE</div>
                     </div>

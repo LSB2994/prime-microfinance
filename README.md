@@ -56,8 +56,7 @@ prime-microfinance/
 │   ├── customer.php       # Customer dashboard
 │   └── logout.php        # Logout handler
 ├── api/
-│   ├── customers.php      # Customers API endpoint (server-side pagination)
-│   └── webill-token.php   # Webill token API endpoint (example)
+│   └── qr-collection.php  # QR code generation API endpoint
 ├── includes/
 │   ├── interceptor.php    # Helper functions (auth, redirects, etc.)
 │   ├── db.php             # Oracle database connection functions
@@ -167,7 +166,7 @@ All user management scripts are in the `scripts/` directory:
 - `/customer` - Customer dashboard (requires login)
 - `/logout` - Logout handler
 - `/api/customers` - GET customers API (server-side pagination with search)
-- `/api/webill-token` - GET Webill API access token (requires login)
+- `/api/qr-collection` - POST Generate QR code for payment (requires login)
 
 ## Configuration
 

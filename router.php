@@ -77,7 +77,7 @@ if (strpos($uri, '/api/') === 0) {
         
         // CRITICAL: Log that we're handling an API route
         error_log("=== ROUTER HANDLING API ROUTE: $uri ===");
-        // Extract API endpoint (e.g., /api/webill-token -> api/webill-token.php)
+        // Extract API endpoint (e.g., /api/qr-collection -> api/qr-collection.php)
         // Handle both /api/endpoint and /api/endpoint.php
         $apiPath = substr($uri, 5); // Remove '/api/' prefix
         
