@@ -274,7 +274,11 @@ function formatNumber(value) {
 function closeCustomerModal() {
     const $modal = $('#customerModal');
     if ($modal.length) {
+        // Remove active class
         $modal.removeClass('active');
+        // Remove any inline styles that might interfere
+        $modal.css('display', '');
+        // Restore body overflow
         $('body').css('overflow', '');
     }
 }
@@ -282,7 +286,17 @@ function closeCustomerModal() {
 function printDocument() {
     const $modal = $('#customerModal');
     if ($modal.length) {
+        // Ensure modal is visible for printing
         $modal.css('display', 'flex');
+        
+        // Listen for afterprint to restore state
+        window.addEventListener('afterprint', function restoreModalState() {
+            // Remove the inline display style to restore normal state management
+            $modal.css('display', '');
+            // Remove this event listener after use
+            window.removeEventListener('afterprint', restoreModalState);
+        }, { once: true });
+        
         setTimeout(function() {
             window.print();
         }, 100);
@@ -290,6 +304,13 @@ function printDocument() {
         window.print();
     }
 }
+
+// Close modal button click handler (using jQuery for better event handling)
+$(document).on('click', '.modal-btn-close', function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    closeCustomerModal();
+});
 
 // Close modal when clicking outside
 $(document).on('click', '#customerModal', function(event) {

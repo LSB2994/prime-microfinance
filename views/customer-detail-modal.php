@@ -33,6 +33,14 @@
 
                 <div class="modal-info-section">
                     <table class="modal-info-table">
+                        <colgroup>
+                            <col style="width: 10%;">
+                            <col style="width: 20%;">
+                            <col style="width: 10%;">
+                            <col style="width: 0px;">
+                            <col style="width: 20%;">
+                            <col style="width: 15%;">
+                        </colgroup>
                         <thead>
                             <tr>
                                 <th></th>
