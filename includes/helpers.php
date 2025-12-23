@@ -94,6 +94,7 @@ function formatPhone($value) {
 
 /**
  * Truncate text with title attribute for long values
+ * Note: CSS handles visual truncation with ellipsis, this function only sets title for hover
  */
 function truncateWithTitle($value, $maxLength = 30) {
     if (empty($value)) {
@@ -104,8 +105,9 @@ function truncateWithTitle($value, $maxLength = 30) {
     if (function_exists('mb_strlen') && function_exists('mb_substr')) {
         $length = mb_strlen($str, 'UTF-8');
         if ($length > $maxLength) {
+            // Return full text - CSS will handle ellipsis display
             return [
-                'display' => mb_substr($str, 0, $maxLength, 'UTF-8') . '...',
+                'display' => $str,
                 'title' => $str
             ];
         }
@@ -113,8 +115,9 @@ function truncateWithTitle($value, $maxLength = 30) {
         // Fallback to regular string functions
         $length = strlen($str);
         if ($length > $maxLength) {
+            // Return full text - CSS will handle ellipsis display
             return [
-                'display' => substr($str, 0, $maxLength) . '...',
+                'display' => $str,
                 'title' => $str
             ];
         }

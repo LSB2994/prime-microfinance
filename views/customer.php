@@ -34,10 +34,8 @@ try {
     <title>Customers - <?php echo APP_NAME; ?></title>
     <link rel="icon" type="image/png" href="<?php echo baseUrl('/assets/images/logo.png'); ?>">
     <link rel="alternate icon" href="<?php echo baseUrl('/assets/images/logo.png'); ?>">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Kantumruy+Pro:wght@400;500;600&family=Noto+Serif+Khmer:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&family=Nunito:wght@400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo baseUrl('/assets/css/style.css'); ?>">
+    <link rel="stylesheet" href="<?php echo baseUrl('/assets/css/customer-modal.css'); ?>">
 </head>
 <body data-base-url="<?php echo htmlspecialchars(baseUrl(''), ENT_QUOTES); ?>">
     <div class="dashboard-container-new">
@@ -68,11 +66,11 @@ try {
                                 <path d="M19 19L14.65 14.65" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </div>
-                        <input type="text" id="searchInput" placeholder="ការិយាល័យ, អតិថិជនឈ្មោះ" class="search-input-new" onkeyup="filterTable()">
+                        <input type="text" id="searchInput" placeholder="ការិយាល័យ, អតិថិជនឈ្មោះ" class="search-input-new">
                     </div>
                 </div>
                 <div class="header-right">
-                    <div class="user-profile-new" onclick="toggleUserMenu()">
+                    <div class="user-profile-new">
                         <div class="profile-avatar-new">
                             <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" class="avatar-icon">
                                 <circle cx="15" cy="15" r="15" fill="#E5E7EB"/>
@@ -142,6 +140,10 @@ try {
                                             );
                                         ?>
                                         <tr
+                                            <?php if (!empty($row['acno'])): ?>
+                                                onclick="openCustomerModal(this)"
+                                                style="cursor: pointer;"
+                                            <?php endif; ?>
                                             data-brname="<?php echo htmlspecialchars($row['brname'] ?? '', ENT_QUOTES); ?>"
                                             data-acno="<?php echo htmlspecialchars($row['acno'] ?? '', ENT_QUOTES); ?>"
                                             data-ctmid="<?php echo htmlspecialchars($row['ctmid'] ?? '', ENT_QUOTES); ?>"
@@ -149,6 +151,7 @@ try {
                                             data-depositacc="<?php echo htmlspecialchars($row['depositacc'] ?? '', ENT_QUOTES); ?>"
                                             data-ifcvalue="<?php echo htmlspecialchars($row['ifcvalue'] ?? '', ENT_QUOTES); ?>"
                                             data-loancycle="<?php echo htmlspecialchars($row['loancycle'] ?? '', ENT_QUOTES); ?>"
+                                            data-coname="<?php echo htmlspecialchars($row['coname'] ?? '', ENT_QUOTES); ?>"
                                             data-customer-name="<?php echo htmlspecialchars($customerName, ENT_QUOTES); ?>"
                                             data-coborrower-name="<?php echo htmlspecialchars($coBorrowerName, ENT_QUOTES); ?>"
                                             data-maturitydt="<?php echo htmlspecialchars($row['maturitydt'] ?? '', ENT_QUOTES); ?>"
@@ -237,18 +240,18 @@ try {
                     <div class="pagination-info">
                         <span class="pagination-label">Page rows</span>
                         <div class="pagination-select-wrapper">
-                            <button type="button" class="pagination-select-btn" onclick="togglePageRowsDropdown(event); event.stopPropagation();">
+                            <button type="button" class="pagination-select-btn">
                                 <span class="pagination-select-value">10</span>
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="pagination-chevron">
                                     <path d="M4 6L8 10L12 6" stroke="#1E1E1E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </button>
                             <div class="pagination-dropdown" id="pageRowsDropdown">
-                                <div class="pagination-dropdown-item active" onclick="selectPageRows(10, event); event.stopPropagation();">10</div>
-                                <div class="pagination-dropdown-item" onclick="selectPageRows(20, event); event.stopPropagation();">20</div>
-                                <div class="pagination-dropdown-item" onclick="selectPageRows(30, event); event.stopPropagation();">30</div>
-                                <div class="pagination-dropdown-item" onclick="selectPageRows(40, event); event.stopPropagation();">40</div>
-                                <div class="pagination-dropdown-item" onclick="selectPageRows(50, event); event.stopPropagation();">50</div>
+                                <div class="pagination-dropdown-item active" data-value="10">10</div>
+                                <div class="pagination-dropdown-item" data-value="20">20</div>
+                                <div class="pagination-dropdown-item" data-value="30">30</div>
+                                <div class="pagination-dropdown-item" data-value="40">40</div>
+                                <div class="pagination-dropdown-item" data-value="50">50</div>
                             </div>
                         </div>
                         <span class="pagination-count">10 of 100</span>
@@ -264,7 +267,11 @@ try {
         </div>
     </div>
     
+    <?php include __DIR__ . '/customer-detail-modal.php'; ?>
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="<?php echo baseUrl('/assets/js/customer.js'); ?>"></script>
+    <script src="<?php echo baseUrl('/assets/js/customer-modal.js'); ?>"></script>
 </body>
 </html>
 

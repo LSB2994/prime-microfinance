@@ -1,0 +1,560 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Kantumruy+Pro:wght@400;500;600&family=Noto+Serif+Khmer:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&family=Nunito:wght@400&family=Moul&display=swap');
+
+/* Customer Detail Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-container {
+    background: white;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 8px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-btn-icon {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    border-radius: 4px;
+}
+
+.modal-btn-icon:hover:not(.modal-btn-close) {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.modal-btn-close {
+    width: 40px;
+    height: 40px;
+}
+
+/* Removed hover effect on close button */
+
+.modal-body {
+    padding: 0;
+    overflow-y: auto;
+    flex: 1;
+    background: #f5f5f5;
+}
+
+.modal-document-content {
+    background: white;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 0;
+    font-family: 'Inter', 'Kantumruy Pro', 'Noto Sans KR', 'Dotum', 'Segoe UI', sans-serif;
+}
+
+.modal-header-content {
+    padding: 20px 20px 8px 20px;
+}
+
+.modal-header-top {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 20px;
+    position: relative;
+    min-height: 80px;
+}
+
+.modal-logo-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    flex: 1;
+}
+
+.modal-logo {
+    width: auto;
+    height: 70px;
+    display: block;
+    object-fit: contain;
+}
+
+.modal-logo img {
+    width: auto;
+    height: 100%;
+    display: block;
+}
+
+.modal-qr-section {
+    background: #dc2626;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: absolute;
+    right: 0;
+    top: 90%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+
+.modal-qr-section h3 {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 3px;
+    margin-top: 0;
+    color: white;
+}
+
+.modal-qr-section p {
+    font-size: 9px;
+    margin-bottom: 6px;
+    margin-top: 0;
+    color: white;
+}
+
+.modal-qr-code {
+    width: 100px;
+    height: 100px;
+    background: white;
+    margin: 0 auto;
+    display: block;
+    border-radius: 4px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-qr-code img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+}
+
+.modal-document-title {
+    text-align: center;
+    color: #1521BA;
+    font-size: 20px;
+    font-weight: normal;
+    margin: 8px 0;
+    font-family: 'Moul', 'Kantumruy Pro', 'Inter', sans-serif;
+}
+
+.modal-info-section {
+    padding: 15px 30px 0px 15px;
+}
+
+.modal-info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+.modal-info-table thead {
+    display: none;
+}
+
+.modal-info-table tbody tr {
+    border: none;
+}
+
+.modal-info-table td {
+    padding: 4px 8px;
+    border: none;
+    vertical-align: top;
+}
+
+.modal-info-label {
+    font-weight: normal;
+    color: #1e293b;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.modal-info-value {
+    color: #475569;
+    font-size: 11px;
+}
+
+.modal-font-weight-bold {
+    font-weight: bold !important;
+}
+
+.modal-table-section {
+    padding: 0px 20px 8px 20px;
+}
+
+.repayment-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 10px;
+}
+
+.repayment-table th {
+    background: #00000033;
+    padding: 4px 2px;
+    text-align: center;
+    border: 1px solid #000000;
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 10px;
+}
+
+.repayment-table td {
+    padding: 4px 2px;
+    border: 1px solid #000000;
+    color: #475569;
+    font-size: 10px;
+}
+
+.repayment-table .text-center {
+    text-align: center;
+}
+
+.repayment-table .text-right {
+    text-align: right;
+}
+
+.repayment-table .bold {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.total-row {
+    background: #00000033;
+    font-weight: 700;
+}
+
+.total-row td {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.modal-footer-content {
+    padding: 0px 20px 8px 20px;
+}
+
+.modal-footer-date {
+    margin-bottom: 15px;
+    font-weight: 500;
+    font-size: 11px;
+}
+
+.modal-signature-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 12px;
+    padding: 0px 20px;
+}
+
+.modal-signature-block {
+    text-align: left;
+}
+
+.modal-signature-block.right {
+    text-align: right;
+}
+
+.modal-signature-label {
+    font-weight: normal;
+    margin-bottom: 6px;
+    color: #1e293b;
+    font-size: 11px;
+}
+
+.modal-signature-name {
+    font-weight: 500;
+    color: #475569;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.modal-dotted-line {
+    display: inline-block;
+    min-width: 200px;
+    height: 1px;
+    vertical-align: middle;
+    margin-left: 5px;
+    /* border-bottom: 1px dotted #000; */
+}
+
+.modal-name-field-section {
+    margin-bottom: 15px;
+}
+
+.modal-notes-section {
+    background: transparent;
+    border-radius: 0;
+}
+
+.modal-notes-title {
+    font-weight: normal;
+    margin-bottom: 6px;
+    color: #1e293b;
+    font-size: 11px;
+}
+
+.modal-notes-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.modal-notes-list li {
+    margin-bottom: 4px;
+    padding-left: 0;
+    position: relative;
+    color: #475569;
+    line-height: 1.4;
+    font-size: 10px;
+}
+
+.modal-notes-list li:before {
+    content: "";
+    display: none;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 12px 20px;
+    border-top: 1px solid #e5e7eb;
+    background: white;
+}
+
+.footer-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-print {
+    padding: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    display: inline-block;
+    background: transparent;
+    transition: opacity 0.2s;
+}
+
+.btn-print:hover {
+    opacity: 0.8;
+}
+
+.btn-print-icon {
+    width: 93px;
+    height: 44px;
+    display: block;
+}
+
+/* Print Styles for Modal */
+@media print {
+    /* Hide all main page content */
+    body > *:not(#customerModal) {
+        display: none !important;
+    }
+    
+    body {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .modal-overlay {
+        position: static !important;
+        background: transparent !important;
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        z-index: 9999 !important;
+    }
+
+    .modal-container {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .modal-header,
+    .modal-footer {
+        display: none !important;
+    }
+
+    .modal-body {
+        overflow: visible !important;
+        padding: 0 !important;
+        background: transparent !important;
+        display: block !important;
+    }
+
+    .modal-document-content {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        page-break-inside: avoid;
+    }
+
+    .modal-header-content {
+        padding: 8px 20px !important;
+        page-break-inside: avoid;
+    }
+
+    .modal-document-title {
+        margin: 8px 0 !important;
+        page-break-after: avoid;
+        font-family: 'Moul', 'Kantumruy Pro', 'Inter', sans-serif !important;
+        color: #1521BA !important;
+        font-size: 20px !important;
+        font-weight: normal !important;
+    }
+
+    .modal-info-section {
+        padding: 15px 30px 0px 15px !important;
+        page-break-inside: avoid;
+    }
+
+    .modal-table-section {
+        padding: 0px 20px 8px 20px !important;
+    }
+
+    .repayment-table {
+        margin: 8px 0 !important;
+        page-break-inside: auto;
+    }
+
+    .repayment-table th,
+    .repayment-table td {
+        padding: 4px 2px !important;
+        border: 1px solid #000000 !important;
+        background: white !important;
+        color: #475569 !important;
+        font-size: 10px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .repayment-table th {
+        background: #00000033 !important;
+        color: #1e293b !important;
+        font-weight: 700 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .total-row {
+        background: #00000033 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .total-row td {
+        background: transparent !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+    }
+
+    .modal-footer-content {
+        padding: 0px 20px 8px 20px !important;
+        page-break-inside: avoid;
+    }
+
+    .modal-qr-section {
+        background: #dc2626 !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .modal-qr-section h3,
+    .modal-qr-section p {
+        color: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .modal-qr-code {
+        background: white !important;
+    }
+
+    * {
+        box-shadow: none !important;
+        text-shadow: none !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    /* Hide all main page elements */
+    .dashboard-container-new,
+    .sidebar-new,
+    .main-content-new,
+    .top-header-new,
+    .content-area-new,
+    .customers-card,
+    .customers-header,
+    .table-wrapper,
+    .customers-table-new,
+    .pagination-controls {
+        display: none !important;
+    }
+
+    @page {
+        margin: 0.5cm;
+        size: A4;
+    }
+
+    .modal-header-content,
+    .modal-document-title,
+    .modal-info-section {
+        page-break-inside: avoid;
+    }
+}

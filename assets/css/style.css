@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Kantumruy+Pro:wght@400;500;600&family=Noto+Serif+Khmer:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&family=Nunito:wght@400&family=Moul&display=swap');
+
 * {
     margin: 0;
     padding: 0;
@@ -768,7 +770,7 @@ body {
     overflow-y: auto;
     position: relative;
     width: 100%;
-    height: 600px; /* Fixed height to show ~10 rows (52px per row) */
+    height: 600px; /* Fixed height to show ~10 rows (40px per row) */
     margin: 0;
     padding: 0;
     scroll-behavior: smooth;
@@ -840,7 +842,7 @@ body {
 
 .customers-table-new th {
     display: table-cell;
-    padding: 12px 10px;
+    padding: 10px;
     text-align: left;
     font-family: 'Kantumruy Pro', sans-serif;
     font-weight: 500;
@@ -974,12 +976,12 @@ body {
 .customers-table-new tbody tr.blank-row td {
     display: table-cell;
     border-bottom: 1px solid rgba(0, 0, 0, 0.25);
-    height: 52px; /* Match data row height */
+    height: 40px; /* Match data row height */
 }
 
 .customers-table-new td {
     display: table-cell;
-    padding: 16px 10px;
+    padding: 10px;
     font-family: 'Kantumruy Pro', sans-serif;
     font-weight: 400;
     font-size: 14px;
@@ -1008,19 +1010,28 @@ body {
 }
 
 .customers-table-new td:nth-child(17) {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     line-height: 20px;
+    vertical-align: middle;
+    padding: 10px;
 }
 
 .address-cell {
     font-size: 14px;
     line-height: 20px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .address-cell p {
     margin: 0;
+    padding: 0;
+    display: inline;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
