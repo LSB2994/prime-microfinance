@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRIME MF</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+Khmer:wght@400;500;600;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Serif Khmer', 'Noto Sans KR', 'Dotum', 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+
+        .open-modal-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1521BA;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 100;
+        }
+
+        .open-modal-btn:hover {
+            background: #1521BA;
+        }
+
+        @media print {
+            .open-modal-btn {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="open-modal-btn" onclick="openCustomerModal()">Open Customer Details</button>
+
+    <!-- Include Customer Modal -->
+    <div id="modalContainer"></div>
+
+    <script>
+        $(document).ready(function() {
+            // Load and inject the modal HTML
+            $.get('customer-modal.html')
+                .done(function(html) {
+                    const $container = $('#modalContainer');
+                    $container.html(html);
+                    
+                    // Extract and execute scripts separately (innerHTML doesn't execute scripts)
+                    $container.find('script').each(function() {
+                        const $oldScript = $(this);
+                        const scriptContent = $oldScript.html() || $oldScript.text() || '';
+                        
+                        if (!scriptContent.trim()) {
+                            $oldScript.remove();
+                            return;
+                        }
+
+                        try {
+                            const $newScript = $('<script>');
+                            
+                            // Copy attributes
+                            $oldScript[0].attributes && $.each($oldScript[0].attributes, function(i, attr) {
+                                $newScript.attr(attr.name, attr.value);
+                            });
+                            
+                            // Set script content
+                            $newScript.text(scriptContent);
+                            
+                            // Replace old script with new one
+                            $oldScript.before($newScript);
+                            $oldScript.remove();
+                        } catch (error) {
+                            console.error('Error processing script:', error);
+                            $oldScript.remove();
+                        }
+                    });
+                })
+                .fail(function(error) {
+                    console.error('Error loading modal:', error);
+                });
+
+            // Function to open customer modal (can be called from anywhere)
+            window.openCustomerModal = function() {
+                const $modal = $('#customerModal');
+                if ($modal.length) {
+                    $modal.css('display', 'flex');
+                    document.body.style.overflow = 'hidden';
+                }
+            };
+
+            // Close customer modal function - ensures it's available globally
+            window.closeCustomerModal = function() {
+                const modal = document.getElementById('customerModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            };
+
+            // Print document function - ensures it's available globally
+            window.printDocument = function() {
+                const modal = document.getElementById('customerModal');
+                if (modal) {
+                    // Ensure modal is visible
+                    modal.style.display = 'flex';
+                    // Small delay to ensure rendering, then print
+                    setTimeout(function() {
+                        window.print();
+                    }, 100);
+                } else {
+                    // Fallback to regular print if modal not found
+                    window.print();
+                }
+            };
+        });
+    </script>
+</body>
+</html>

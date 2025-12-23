@@ -142,9 +142,6 @@ try {
                                             );
                                         ?>
                                         <tr
-                                            <?php if (!empty($row['acno'])): ?>
-                                                onclick="showLoanRepayment(this)"
-                                            <?php endif; ?>
                                             data-brname="<?php echo htmlspecialchars($row['brname'] ?? '', ENT_QUOTES); ?>"
                                             data-acno="<?php echo htmlspecialchars($row['acno'] ?? '', ENT_QUOTES); ?>"
                                             data-ctmid="<?php echo htmlspecialchars($row['ctmid'] ?? '', ENT_QUOTES); ?>"
@@ -266,9 +263,6 @@ try {
             </div>
         </div>
     </div>
-    
-    <?php /* Loan repayment modal */ ?>
-    <?php include __DIR__ . '/loan-repayment-modal.php'; ?>
     
     <script src="<?php echo baseUrl('/assets/js/customer.js'); ?>"></script>
 </body>
