@@ -84,7 +84,7 @@
 }
 
 .modal-header-content {
-    padding: 20px 20px 8px 20px;
+    padding: 30px 20px 8px 20px;
 }
 
 .modal-header-top {
@@ -121,10 +121,8 @@
 .modal-qr-section {
     background: #dc2626;
     color: white;
-    padding: 10px;
-    border-radius: 4px;
+    border-radius: 2px;
     text-align: center;
-    min-width: 120px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -134,41 +132,88 @@
     top: 90%;
     transform: translateY(-50%);
     z-index: 10;
+    /* Thin borders on right, bottom, and left */
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .modal-qr-section h3 {
     font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 3px;
+    font-size: 16px;
+    margin-bottom: 8px;
     margin-top: 0;
     color: white;
-}
-
-.modal-qr-section p {
-    font-size: 9px;
-    margin-bottom: 6px;
-    margin-top: 0;
-    color: white;
+    letter-spacing: 0.5px;
 }
 
 .modal-qr-code {
-    width: 100px;
-    height: 100px;
+    width: 100%;
     background: white;
-    margin: 0 auto;
-    display: block;
-    border-radius: 4px;
-    padding: 5px;
+    margin: 0;
+    border-radius: 1px;
+    padding: 10px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 2px;
+}
+
+.modal-qr-code p {
+    font-size: 10px;
+    margin: 0 0 4px 0;
+    color: #1e293b;
+    font-weight: 500;
 }
 
 .modal-qr-code img {
-    width: 100%;
-    height: 100%;
+    width: 100px;
+    height: 100px;
     display: block;
     object-fit: contain;
+    border-radius: 2px;
+}
+
+/* Currency selector styling */
+.modal-currency-selector {
+    width: 100%;
+}
+
+.modal-currency-selector label {
+    display: block;
+    font-size: 10px;
+    color: #1e293b;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.modal-currency-selector select {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #1e293b;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.modal-currency-selector select:hover {
+    border-color: #9ca3af;
+}
+
+.modal-currency-selector select:focus {
+    outline: none;
+    border-color: #dc2626;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+}
+
+/* Hide currency display on screen, show in print */
+.modal-currency-display {
+    display: none;
 }
 
 .modal-document-title {
@@ -445,7 +490,7 @@
     }
 
     .modal-header-content {
-        padding: 8px 20px !important;
+        padding: 30px 20px 8px 20px !important;
         page-break-inside: avoid;
     }
 
@@ -515,11 +560,20 @@
         print-color-adjust: exact !important;
     }
 
-    .modal-qr-section h3,
-    .modal-qr-section p {
+    .modal-qr-section h3 {
         color: white !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+    }
+    
+    .modal-qr-code p {
+        color: #1e293b !important;
+    }
+
+    /* Hide currency selector and display in print */
+    .modal-currency-selector,
+    .modal-currency-display {
+        display: none !important;
     }
 
     .modal-qr-code {

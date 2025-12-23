@@ -207,26 +207,26 @@ $(document).ready(function() {
     $('#prevBtn').on('click', function() {
         const $btn = $(this);
         if (!$btn.prop('disabled') && currentPage > 1) {
-            currentPage--;
-            filterTable();
-        }
-    });
+                currentPage--;
+                filterTable();
+            }
+        });
 
     $('#nextBtn').on('click', function() {
         const $btn = $(this);
-        const rows = getCustomerRows();
+            const rows = getCustomerRows();
         const searchTerm = $('#searchInput').val().toLowerCase() || '';
         const filtered = rows.filter(function(row) {
             const text = $(row).text().toLowerCase();
-            return !searchTerm || text.includes(searchTerm);
-        });
-        const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
-        
+                return !searchTerm || text.includes(searchTerm);
+            });
+            const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
+            
         if (!$btn.prop('disabled') && currentPage < totalPages) {
-            currentPage++;
-            filterTable();
-        }
-    });
+                currentPage++;
+                filterTable();
+            }
+        });
     
     // Wire up search input
     $('#searchInput').on('keyup', function() {

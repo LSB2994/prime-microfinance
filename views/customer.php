@@ -161,6 +161,7 @@ try {
                                             data-dbamt="<?php echo htmlspecialchars($row['dbamt'] ?? '', ENT_QUOTES); ?>"
                                             data-phone="<?php echo htmlspecialchars($row['phone'] ?? '', ENT_QUOTES); ?>"
                                             data-ctmaddress="<?php echo htmlspecialchars((string)($row['ctmaddress'] ?? ''), ENT_QUOTES); ?>"
+                                            data-currency="<?php echo htmlspecialchars(strtoupper($row['currency'] ?? 'USD'), ENT_QUOTES); ?>"
                                         >
                                             <?php
                                                 // Format values and handle truncation with title
@@ -270,6 +271,7 @@ try {
     <?php include __DIR__ . '/customer-detail-modal.php'; ?>
     
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
     <script src="<?php echo baseUrl('/assets/js/customer.js'); ?>"></script>
     <script src="<?php echo baseUrl('/assets/js/customer-modal.js'); ?>"></script>
 </body>

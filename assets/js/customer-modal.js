@@ -1,3 +1,6 @@
+// Store current customer data for currency change
+let currentCustomerData = null;
+
 // Customer Detail Modal Functions
 function openCustomerModal(rowEl) {
     const $modal = $('#customerModal');
@@ -23,8 +26,23 @@ function openCustomerModal(rowEl) {
         adminfeerate: $row.attr('data-adminfeerate') || '',
         dbamt: $row.attr('data-dbamt') || '',
         phone: $row.attr('data-phone') || '',
-        ctmaddress: $row.attr('data-ctmaddress') || ''
+        ctmaddress: $row.attr('data-ctmaddress') || '',
+        currency: $row.attr('data-currency') || 'USD' // Default to USD if not specified
     };
+    
+    // Store current customer data
+    currentCustomerData = data;
+    
+    // Set currency selector value and display
+    const $currencySelect = $('#currencySelect');
+    const $currencyDisplay = $('#currencyDisplay');
+    if ($currencySelect.length) {
+        $currencySelect.val(data.currency.toUpperCase());
+    }
+    if ($currencyDisplay.length) {
+        const currencyText = data.currency.toUpperCase() === 'KHR' ? 'KHR (៛)' : 'USD ($)';
+        $currencyDisplay.text(currencyText);
+    }
     
     // Populate info table
     populateModalInfo(data);
@@ -35,6 +53,9 @@ function openCustomerModal(rowEl) {
     } else {
         clearRepaymentSchedule();
     }
+    
+    // Load QR code from API
+    loadQRCode(data);
     
     // Show modal
     $modal.addClass('active');
@@ -258,6 +279,208 @@ function clearRepaymentSchedule() {
     $('#modalScheduleTableBody').html('<tr><td colspan="8" style="text-align: center; padding: 20px;">No schedule data available</td></tr>');
 }
 
+// Get Webill API access token
+function getWebillAccessToken(callback) {
+    $.ajax({
+        url: 'https://apitest-va.webill365.com/kh/api/wbi/client/v1/auth/token',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            client_id: 'aec6fef2e90e26975ec95abd18b1fb77',
+            client_secret: '13fd6fea8da76e2cde034590b6c2c55a'
+        }),
+        dataType: 'json',
+        success: function(result) {
+            if (result.status && result.status.code === 200 && result.data && result.data.access_token) {
+                callback(null, result.data.access_token);
+            } else {
+                callback('Failed to get access token', null);
+            }
+        },
+        error: function(xhr, status, error) {
+            callback('Error getting access token: ' + error, null);
+        }
+    });
+}
+
+// Helper function to generate QR code from khqr_data and add logo overlay
+function generateQRCodeWithLogo(khqrData, currencyCode, callback) {
+    if (typeof QRCode === 'undefined' || !QRCode.toCanvas) {
+        console.error('QRCode library not loaded');
+        callback(null);
+        return;
+    }
+    
+    const currency = (currencyCode || 'USD').toUpperCase();
+    const qrSize = 240; // QR code size
+    const logoRadius = Math.round(qrSize * 0.09); // ~9% of QR size
+    
+    // Create canvas for QR code
+    const canvas = document.createElement('canvas');
+    canvas.width = qrSize;
+    canvas.height = qrSize;
+    
+    // Generate QR code from khqr_data
+    QRCode.toCanvas(canvas, khqrData, {
+        errorCorrectionLevel: 'H', // High error correction for logo overlay
+        width: qrSize,
+        margin: 1,
+        color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+        }
+    }, function(error) {
+        if (error) {
+            console.error('Error generating QR code:', error);
+            callback(null);
+            return;
+        }
+        
+        const ctx = canvas.getContext('2d');
+        const logoCenterX = qrSize / 2;
+        const logoCenterY = qrSize / 2;
+        
+        // Draw circular white background for logo
+        ctx.beginPath();
+        ctx.arc(logoCenterX, logoCenterY, logoRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        
+        // Draw circular black border
+        ctx.beginPath();
+        ctx.arc(logoCenterX, logoCenterY, logoRadius, 0, 2 * Math.PI);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        
+        // Draw currency symbol
+        ctx.fillStyle = '#000000';
+        const fontSize = Math.round(qrSize * 0.11); // ~11% of QR size
+        ctx.font = 'bold ' + fontSize + 'px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Currency symbol based on currency code
+        const currencySymbol = currency === 'KHR' ? '៛' : '$';
+        
+        ctx.fillText(currencySymbol, logoCenterX, logoCenterY);
+        
+        // Convert canvas to base64 image
+        const qrWithLogo = canvas.toDataURL('image/png');
+        callback(qrWithLogo);
+    });
+}
+
+function loadQRCode(data) {
+    const $qrImage = $('#qrCodeImage');
+    
+    if (!$qrImage.length) return;
+    
+    // Show loading state
+    $qrImage.attr('src', '');
+    $qrImage.css('opacity', '0.5');
+    
+    // Step 1: Get access token
+    getWebillAccessToken(function(tokenError, accessToken) {
+        if (tokenError || !accessToken) {
+            console.error('Failed to get access token:', tokenError);
+            const baseUrl = $('body').attr('data-base-url') || '';
+            $qrImage.attr('src', `${baseUrl}/assets/images/qr.png`);
+            $qrImage.css('opacity', '1');
+            return;
+        }
+        
+        // Step 2: Determine currency and parent account number
+        // Default to USD, but check if currency is specified in data
+        const currency = (data.currency || 'USD').toUpperCase();
+        let parentAccountNo = '';
+        let currencyCode = 'USD';
+        
+        if (currency === 'KHR') {
+            parentAccountNo = '1120000805758';
+            currencyCode = 'KHR';
+        } else {
+            // Default to USD
+            parentAccountNo = '1120000106664';
+            currencyCode = 'USD';
+        }
+        
+        // Step 3: Prepare data for QR collection API
+        const requestData = {
+            payer_name: data.customerName || 'Customer',
+            parent_account_no: parentAccountNo,
+            payment_type: '0',
+            currency_code: currencyCode,
+            amount: parseFloat(data.dbamt) || 0,
+            remark: `Loan Account: ${data.acno || ''}`,
+            khqr_name: '',
+            request_id: data.acno || Date.now().toString()
+        };
+        
+        // Step 4: Call QR collection API
+        $.ajax({
+            url: 'https://apitest-va.webill365.com/kh/api/wbi/client/v1/qr-collections',
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + accessToken,
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify(requestData),
+            dataType: 'json',
+            success: function(result) {
+                console.log('QR collection API response:', result);
+                if (result.status && result.status.code === 200 && result.data) {
+                    // Use khqr_data to generate QR code with logo
+                    if (result.data.khqr_data) {
+                        console.log('Using khqr_data to generate QR code with logo');
+                        generateQRCodeWithLogo(result.data.khqr_data, currencyCode, function(qrWithLogo) {
+                            if (qrWithLogo) {
+                                $qrImage.attr('src', qrWithLogo);
+                                $qrImage.attr('alt', 'QR Code');
+                                $qrImage.css('opacity', '1');
+                            } else {
+                                // Fallback to khqr_data_base64 if available
+                                if (result.data.khqr_data_base64) {
+                                    console.log('Falling back to khqr_data_base64');
+                                    $qrImage.attr('src', result.data.khqr_data_base64);
+                                    $qrImage.attr('alt', 'QR Code');
+                                    $qrImage.css('opacity', '1');
+                                } else {
+                                    const baseUrl = $('body').attr('data-base-url') || '';
+                                    $qrImage.attr('src', `${baseUrl}/assets/images/qr.png`);
+                                    $qrImage.css('opacity', '1');
+                                }
+                            }
+                        });
+                    } else if (result.data.khqr_data_base64) {
+                        // Fallback: use base64 if khqr_data is not available
+                        console.log('Using khqr_data_base64 (khqr_data not available)');
+                        $qrImage.attr('src', result.data.khqr_data_base64);
+                        $qrImage.attr('alt', 'QR Code');
+                        $qrImage.css('opacity', '1');
+                    } else {
+                        console.warn('QR collection API returned no QR data', result);
+                        const baseUrl = $('body').attr('data-base-url') || '';
+                        $qrImage.attr('src', `${baseUrl}/assets/images/qr.png`);
+                        $qrImage.css('opacity', '1');
+                    }
+                } else {
+                    console.warn('QR collection API returned error', result);
+                    const baseUrl = $('body').attr('data-base-url') || '';
+                    $qrImage.attr('src', `${baseUrl}/assets/images/qr.png`);
+                    $qrImage.css('opacity', '1');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error calling QR collection API:', error);
+                const baseUrl = $('body').attr('data-base-url') || '';
+                $qrImage.attr('src', `${baseUrl}/assets/images/qr.png`);
+                $qrImage.css('opacity', '1');
+            }
+        });
+    });
+}
+
 function formatScheduleDate(dayname, duedate) {
     if (!duedate) return '';
     const dayName = dayname || '';
@@ -326,5 +549,24 @@ $(document).on('keydown', function(event) {
         if ($modal.length && $modal.hasClass('active')) {
             closeCustomerModal();
         }
+    }
+});
+
+// Handle currency selection change
+$(document).on('change', '#currencySelect', function() {
+    if (currentCustomerData) {
+        // Update currency in current customer data
+        const selectedCurrency = $(this).val();
+        currentCustomerData.currency = selectedCurrency;
+        
+        // Update currency display text
+        const $currencyDisplay = $('#currencyDisplay');
+        if ($currencyDisplay.length) {
+            const currencyText = selectedCurrency.toUpperCase() === 'KHR' ? 'KHR (៛)' : 'USD ($)';
+            $currencyDisplay.text(currencyText);
+        }
+        
+        // Regenerate QR code with new currency
+        loadQRCode(currentCustomerData);
     }
 });

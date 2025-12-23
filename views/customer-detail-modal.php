@@ -22,8 +22,18 @@
                         </div>
                         <div class="modal-qr-section">
                             <h3>KHQR</h3>
-                            <p>Prime Microfinance</p>
+
                             <div class="modal-qr-code">
+                            <p>Prime Microfinance</p>
+                            <div class="modal-currency-selector">
+                                <select id="currencySelect">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="KHR">KHR (៛)</option>
+                                </select>
+                            </div>
+                            <div class="modal-currency-display">
+                                Currency: <span id="currencyDisplay">USD ($)</span>
+                            </div>
                                 <img src="<?php echo baseUrl('/assets/images/qr.png'); ?>" alt="QR Code" id="qrCodeImage">
                             </div>
                         </div>
