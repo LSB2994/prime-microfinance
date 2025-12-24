@@ -138,14 +138,14 @@
 
 .modal-qr-section h3 {
     font-weight: 700;
-    font-size: 14px;
+    font-size: 15px;
     margin-bottom: 3px;
     margin-top: 0;
     color: white;
 }
 
 .modal-qr-section p {
-    font-size: 9px;
+    font-size: 10px;
     margin-bottom: 6px;
     margin-top: 0;
     color: white;
@@ -174,7 +174,7 @@
 .modal-document-title {
     text-align: center;
     color: #1521BA;
-    font-size: 20px;
+    font-size: 21px;
     font-weight: normal;
     margin: 8px 0;
     font-family: 'Moul', 'Kantumruy Pro', 'Inter', sans-serif;
@@ -228,7 +228,7 @@
     width: 100%;
     border-collapse: collapse;
     margin: 8px 0;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .repayment-table th {
@@ -238,14 +238,14 @@
     border: 1px solid #000000;
     font-weight: 700;
     color: #1e293b;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .repayment-table td {
-    padding: 4px 2px;
+    padding: 4px 8px;
     border: 1px solid #000000;
     color: #475569;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .repayment-table .text-center {
@@ -277,8 +277,8 @@
 
 .modal-footer-date {
     margin-bottom: 15px;
-    font-weight: 500;
-    font-size: 11px;
+    font-weight: normal;
+    font-size: 12px;
 }
 
 .modal-signature-section {
@@ -301,13 +301,13 @@
     font-weight: normal;
     margin-bottom: 6px;
     color: #1e293b;
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .modal-signature-name {
-    font-weight: 500;
+    font-weight: normal;
     color: #475569;
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 4px;
 }
 
@@ -333,7 +333,7 @@
     font-weight: normal;
     margin-bottom: 6px;
     color: #1e293b;
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .modal-notes-list {
@@ -346,8 +346,8 @@
     padding-left: 0;
     position: relative;
     color: #475569;
-    line-height: 1.4;
-    font-size: 10px;
+    line-height: 1.7;
+    font-size: 12px;
 }
 
 .modal-notes-list li:before {
@@ -454,7 +454,7 @@
         page-break-after: avoid;
         font-family: 'Moul', 'Kantumruy Pro', 'Inter', sans-serif !important;
         color: #1521BA !important;
-        font-size: 20px !important;
+        font-size: 21px !important;
         font-weight: normal !important;
     }
 
@@ -474,11 +474,11 @@
 
     .repayment-table th,
     .repayment-table td {
-        padding: 4px 2px !important;
+        padding: 4px 8px !important;
         border: 1px solid #000000 !important;
         background: white !important;
         color: #475569 !important;
-        font-size: 10px !important;
+        font-size: 11px !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }

@@ -110,13 +110,13 @@ function populateModalInfo(data) {
             <td class="modal-info-label">ការិយាល័យ</td>
             <td class="modal-info-value">៖ ${data.brname || ''}</td>
             <td colspan="2" class="modal-info-label">កម្ចីរគ្គទី</td>
-            <td colspan="2" class="modal-info-value">៖ ${data.loancycle || ''} / មន្ត្រីឥណទាន / ${data.coname || ''}${data.phone ? '(' + formatPhone(data.phone) + ')' : ''}</td>
+            <td colspan="4" class="modal-info-value">៖ ${data.loancycle || ''} / មន្ត្រីឥណទាន / ${data.coname || ''}${data.phone ? '(' + formatPhone(data.phone) + ')' : ''}</td>
         </tr>
         <tr>
             <td class="modal-info-label modal-font-weight-bold">គណនីឥណទាន</td>
             <td class="modal-info-value modal-font-weight-bold">៖ ${data.acno || ''}</td>
             <td colspan="2" class="modal-info-label modal-font-weight-bold">អតិថិជនឈ្មោះ</td>
-            <td colspan="2" class="modal-info-value modal-font-weight-bold">៖ ${data.customerName || ''}</td>
+            <td colspan="4" class="modal-info-value modal-font-weight-bold">៖ ${data.customerName || ''}</td>
         </tr>
         <tr>
             <td class="modal-info-label modal-font-weight-bold">គណនីអតិថិជន</td>
@@ -204,13 +204,13 @@ function renderRepaymentSchedule(schedule, summary) {
     if (summary && summary.initialBalance) {
         html += `
             <tr>
+                <td class="text-center">0</td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
-                <td></td>
-                <td class="text-right">${formatNumber(summary.initialBalance)}</td>
+                <td class="text-right bold">${formatNumber(summary.initialBalance)}</td>
                 <td></td>
             </tr>
         `;
@@ -223,7 +223,7 @@ function renderRepaymentSchedule(schedule, summary) {
                 html += `
                     <tr>
                         <td class="text-center">${row.dueno || ''}</td>
-                        <td>${formatScheduleDate(row.dayname, row.duedate)}</td>
+                        <td class="text-right">${formatScheduleDate(row.dayname, row.duedate)}</td>
                         <td class="text-center">${row.period || ''}</td>
                         <td class="text-right">${formatNumber(row.principal)}</td>
                         <td class="text-right">${formatNumber(row.interest)}</td>
