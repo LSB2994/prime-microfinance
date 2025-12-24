@@ -29,6 +29,10 @@ function openCustomerModal(rowEl) {
     // Populate info table
     populateModalInfo(data);
     
+    // Load QR collection data and generate QR code
+    console.log('[Customer Modal] Opening customer modal - triggering QR collection load');
+    loadQRCollection();
+    
     // Load and populate schedule if acno exists
     if (data.acno) {
         loadRepaymentSchedule(data.acno);
@@ -194,6 +198,338 @@ function loadRepaymentSchedule(acno) {
     });
 }
 
+// Configuration constants
+const WEBILL_CONFIG = {
+    BASE_URL: 'https://apitest-va.webill365.com/kh',
+    CLIENT_ID: 'aec6fef2e90e26975ec95abd18b1fb77',
+    CLIENT_SECRET: '13fd6fea8da76e2cde034590b6c2c55a',
+    TOKEN_ENDPOINT: '/api/wbi/client/v1/auth/token',
+    QR_COLLECTION_ENDPOINT: '/api/wbi/client/v1/qr-collections',
+    REQUEST_TIMEOUT: 30000, // 30 seconds
+    MAX_RETRIES: 2
+};
+
+// Store payer name globally for QR code display
+let currentPayerName = '';
+let currentCurrency = 'USD';
+let qrCollectionRequest = null; // Store request for cancellation
+
+// Random names pool for payer name generation
+const PAYER_NAMES = [
+    'John Smith', 'Jane Doe', 'Michael Johnson', 'Sarah Williams', 'David Brown',
+    'Emily Davis', 'Robert Miller', 'Jessica Wilson', 'William Moore', 'Ashley Taylor',
+    'James Anderson', 'Amanda Thomas', 'Christopher Jackson', 'Melissa White', 'Daniel Harris',
+    'Michelle Martin', 'Matthew Thompson', 'Stephanie Garcia', 'Anthony Martinez', 'Nicole Robinson',
+    'Mark Clark', 'Rachel Rodriguez', 'Donald Lewis', 'Laura Lee', 'Steven Walker',
+    'Kimberly Hall', 'Paul Allen', 'Lisa Young', 'Andrew King', 'Amy Wright',
+    'Joshua Lopez', 'Angela Hill', 'Kenneth Scott', 'Brenda Green', 'Kevin Adams',
+    'Pamela Baker', 'Brian Gonzalez', 'Emma Nelson', 'George Carter', 'Deborah Mitchell'
+];
+
+/**
+ * Generate a random payer name
+ * @returns {string} Random payer name
+ */
+function generateRandomPayerName() {
+    return PAYER_NAMES[Math.floor(Math.random() * PAYER_NAMES.length)];
+}
+
+/**
+ * Get WeBill365 access token
+ * @returns {Promise<string>} Access token
+ */
+function getWebillAccessToken() {
+    return new Promise(function(resolve, reject) {
+        console.log('[QR Collection] Step 1: Requesting WeBill365 access token');
+        console.log('[QR Collection] Token URL:', WEBILL_CONFIG.BASE_URL + WEBILL_CONFIG.TOKEN_ENDPOINT);
+        
+        qrCollectionRequest = $.ajax({
+            url: WEBILL_CONFIG.BASE_URL + WEBILL_CONFIG.TOKEN_ENDPOINT,
+            method: 'POST',
+            contentType: 'application/json',
+            timeout: WEBILL_CONFIG.REQUEST_TIMEOUT,
+            headers: {
+                'accept': '*/*'
+            },
+            data: JSON.stringify({
+                client_id: WEBILL_CONFIG.CLIENT_ID,
+                client_secret: WEBILL_CONFIG.CLIENT_SECRET
+            }),
+            dataType: 'json',
+            success: function(tokenResult) {
+                console.log('[QR Collection] Step 1: Token request successful');
+                
+                // Validate response structure
+                if (!tokenResult || typeof tokenResult !== 'object') {
+                    reject(new Error('Invalid token response format'));
+                    return;
+                }
+                
+                // Extract access token from response
+                const accessToken = tokenResult.access_token || (tokenResult.data && tokenResult.data.access_token);
+                
+                if (!accessToken || typeof accessToken !== 'string') {
+                    console.error('[QR Collection] Step 1: Failed to extract access token from response');
+                    console.error('[QR Collection] Full token result:', tokenResult);
+                    reject(new Error('Access token not found in response'));
+                    return;
+                }
+                
+                console.log('[QR Collection] Step 1: Access token obtained successfully');
+                console.log('[QR Collection] Token (first 20 chars):', accessToken.substring(0, 20) + '...');
+                resolve(accessToken);
+            },
+            error: function(xhr, status, error) {
+                const errorMessage = status === 'timeout' 
+                    ? 'Token request timed out' 
+                    : `Token request failed: ${error}`;
+                console.error('[QR Collection] Step 1: Token request failed');
+                console.error('[QR Collection] Step 1: Error:', error);
+                console.error('[QR Collection] Step 1: Status:', status);
+                console.error('[QR Collection] Step 1: HTTP Status:', xhr.status);
+                console.error('[QR Collection] Step 1: Response Text:', xhr.responseText);
+                reject(new Error(errorMessage));
+            }
+        });
+    });
+}
+
+/**
+ * Create QR collection request
+ * @param {string} accessToken - WeBill365 access token
+ * @param {Object} qrData - QR collection data
+ * @returns {Promise<Object>} QR collection response
+ */
+function createQRCollection(accessToken, qrData) {
+    return new Promise(function(resolve, reject) {
+        console.log(`[QR Collection] Step 2.${qrData.currency_code}: Sending QR collection request`);
+        console.log(`[QR Collection] Step 2.${qrData.currency_code}: Request data:`, qrData);
+        
+        $.ajax({
+            url: WEBILL_CONFIG.BASE_URL + WEBILL_CONFIG.QR_COLLECTION_ENDPOINT,
+            method: 'POST',
+            contentType: 'application/json',
+            timeout: WEBILL_CONFIG.REQUEST_TIMEOUT,
+            headers: {
+                'accept': '*/*',
+                'Authorization': `Bearer ${accessToken}`
+            },
+            data: JSON.stringify(qrData),
+            dataType: 'json',
+            success: function(result) {
+                console.log(`[QR Collection] Step 2.${qrData.currency_code}: QR collection request successful`);
+                
+                // Validate response
+                if (!result || typeof result !== 'object') {
+                    reject(new Error('Invalid QR collection response format'));
+                    return;
+                }
+                
+                // Extract khqr_data from response
+                const khqrData = result.khqr_data || (result.data && result.data.khqr_data);
+                
+                if (!khqrData || typeof khqrData !== 'string') {
+                    console.error(`[QR Collection] Step 2.${qrData.currency_code}: khqr_data not found in response`);
+                    reject(new Error('khqr_data not found in response'));
+                    return;
+                }
+                
+                console.log(`[QR Collection] Step 2.${qrData.currency_code}: Found khqr_data`);
+                console.log(`[QR Collection] Step 2.${qrData.currency_code}: khqr_data length:`, khqrData.length);
+                resolve(khqrData);
+            },
+            error: function(xhr, status, error) {
+                const errorMessage = status === 'timeout'
+                    ? 'QR collection request timed out'
+                    : `QR collection request failed: ${error}`;
+                console.error(`[QR Collection] Step 2.${qrData.currency_code}: QR collection request failed`);
+                console.error(`[QR Collection] Step 2.${qrData.currency_code}: Error:`, error);
+                console.error(`[QR Collection] Step 2.${qrData.currency_code}: Status:`, status);
+                console.error(`[QR Collection] Step 2.${qrData.currency_code}: HTTP Status:`, xhr.status);
+                console.error(`[QR Collection] Step 2.${qrData.currency_code}: Response Text:`, xhr.responseText);
+                reject(new Error(errorMessage));
+            }
+        });
+    });
+}
+
+/**
+ * Load QR collection data and generate QR code
+ */
+function loadQRCollection() {
+    console.log('[QR Collection] Starting QR collection load process...');
+    
+    // Cancel any existing request
+    if (qrCollectionRequest && qrCollectionRequest.abort) {
+        qrCollectionRequest.abort();
+    }
+    
+    // Generate random payer name
+    const randomPayerName = generateRandomPayerName();
+    currentPayerName = randomPayerName;
+    currentCurrency = 'USD';
+    
+    console.log('[QR Collection] Step 2: Generated random payer name:', randomPayerName);
+    
+    // Prepare QR collection data
+    const qrCollectionData = {
+        payer_name: randomPayerName,
+        parent_account_no: '1120000106664',
+        payment_type: '0',
+        currency_code: 'USD',
+        amount: 0,
+        remark: '',
+        khqr_name: '',
+        request_id: '001'
+    };
+    
+    // Get access token and create QR collection
+    getWebillAccessToken()
+        .then(function(accessToken) {
+            console.log('[QR Collection] Step 2: Preparing QR collection request');
+            console.log('[QR Collection] QR Collection URL:', WEBILL_CONFIG.BASE_URL + WEBILL_CONFIG.QR_COLLECTION_ENDPOINT);
+            
+            return createQRCollection(accessToken, qrCollectionData);
+        })
+        .then(function(khqrData) {
+            console.log('[QR Collection] Step 3: QR collection completed successfully');
+            console.log('[QR Collection] Step 3: QR data available, generating QR code...');
+            console.log('[QR Collection] Step 3: QR data length:', khqrData.length);
+            generateQRCode(khqrData);
+        })
+        .catch(function(error) {
+            console.error('[QR Collection] Error:', error.message);
+            console.error('[QR Collection] Full error:', error);
+            
+            // Show error in QR display area
+            const $container = $('#qrCodeDisplay');
+            if ($container.length) {
+                $container.html('<div style="color: red; font-size: 10px; text-align: center;">QR Error</div>');
+            }
+        });
+}
+
+function closeCustomerModal() {
+    // Cancel any pending QR collection requests
+    if (qrCollectionRequest && qrCollectionRequest.abort) {
+        qrCollectionRequest.abort();
+        qrCollectionRequest = null;
+        console.log('[Customer Modal] Cancelled pending QR collection request');
+    }
+    
+    const $modal = $('#customerModal');
+    if ($modal.length) {
+        // Remove active class
+        $modal.removeClass('active');
+        // Remove any inline styles that might interfere
+        $modal.css('display', '');
+        // Restore body overflow
+        $('body').css('overflow', '');
+    }
+}
+
+function generateQRCode(dataBaseUrl) {
+    console.log('[QR Code Generation] Step 4: Starting QR code generation');
+    console.log('[QR Code Generation] Step 4: Input data length:', dataBaseUrl ? dataBaseUrl.length : 0);
+    console.log('[QR Code Generation] Step 4: Input data (first 100 chars):', dataBaseUrl ? dataBaseUrl.substring(0, 100) + '...' : 'NULL');
+    
+    // Check if QRCode library is loaded, wait a bit if not
+    let QRCodeLib = window.QRCode || (typeof QRCode !== 'undefined' ? QRCode : null);
+    
+    if (!QRCodeLib) {
+        console.warn('[QR Code Generation] Step 4: QRCode library not loaded yet, waiting...');
+        // Wait up to 3 seconds for library to load
+        let attempts = 0;
+        const checkInterval = setInterval(function() {
+            QRCodeLib = window.QRCode || (typeof QRCode !== 'undefined' ? QRCode : null);
+            attempts++;
+            
+            if (QRCodeLib) {
+                clearInterval(checkInterval);
+                console.log('[QR Code Generation] Step 4: QRCode library loaded after wait');
+                proceedWithQRGeneration(dataBaseUrl, QRCodeLib);
+            } else if (attempts >= 30) { // 3 seconds (30 * 100ms)
+                clearInterval(checkInterval);
+                console.error('[QR Code Generation] Step 4: QRCode library failed to load after 3 seconds');
+                console.error('[QR Code Generation] Step 4: Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('qr')));
+                const $container = $('#qrCodeDisplay');
+                if ($container.length) {
+                    $container.html('<div style="color: red; font-size: 10px;">QR Library Error</div>');
+                }
+            }
+        }, 100);
+        return;
+    }
+    
+    console.log('[QR Code Generation] Step 4: QRCode library is available');
+    proceedWithQRGeneration(dataBaseUrl, QRCodeLib);
+}
+
+function proceedWithQRGeneration(dataBaseUrl, QRCodeLib) {
+    
+    const $container = $('#qrCodeDisplay');
+    if (!$container.length) {
+        console.error('[QR Code Generation] Step 4: QR code container (#qrCodeDisplay) not found');
+        return;
+    }
+    
+    console.log('[QR Code Generation] Step 4: QR code container found');
+    
+    // Clear previous QR code
+    $container.empty();
+    console.log('[QR Code Generation] Step 4: Cleared previous QR code');
+    
+    // Generate QR code
+    const qrSize = 60; // Size to fit in the SVG frame
+    console.log('[QR Code Generation] Step 4: QR code size:', qrSize);
+    
+    // Create canvas element
+    const canvas = document.createElement('canvas');
+    canvas.id = 'qrCanvas';
+    $container.append(canvas);
+    console.log('[QR Code Generation] Step 4: Canvas element created and appended');
+    
+    // Generate QR code using QRCode library
+    console.log('[QR Code Generation] Step 4: Calling QRCode.toCanvas');
+    console.log('[QR Code Generation] Step 4: QRCode options:', {
+        width: qrSize,
+        margin: 1,
+        color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+        },
+        errorCorrectionLevel: 'M'
+    });
+    
+    QRCodeLib.toCanvas(canvas, dataBaseUrl, {
+        width: qrSize,
+        margin: 1,
+        color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+        },
+        errorCorrectionLevel: 'M'
+    }, function(error) {
+        if (error) {
+            console.error('[QR Code Generation] Step 4: Error generating QR code');
+            console.error('[QR Code Generation] Step 4: Error details:', error);
+            console.error('[QR Code Generation] Step 4: Error message:', error.message);
+            console.error('[QR Code Generation] Step 4: Error stack:', error.stack);
+            $container.html('<div style="color: red; font-size: 10px;">QR Error</div>');
+        } else {
+            console.log('[QR Code Generation] Step 4: QR code generated successfully');
+            console.log('[QR Code Generation] Step 4: QR code generation completed');
+            
+            // Update currency icon
+            const $currencyIcon = $('#qrCurrencyIcon');
+            if ($currencyIcon.length) {
+                $currencyIcon.text(currentCurrency === 'USD' ? '$' : '៛');
+                console.log('[QR Code Generation] Step 4: Currency icon updated:', currentCurrency);
+            }
+        }
+    });
+}
+
 function renderRepaymentSchedule(schedule, summary) {
     const $tbody = $('#modalScheduleTableBody');
     if (!$tbody.length) return;
@@ -269,18 +605,6 @@ function formatNumber(value) {
     const num = parseFloat(value);
     if (isNaN(num)) return value;
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function closeCustomerModal() {
-    const $modal = $('#customerModal');
-    if ($modal.length) {
-        // Remove active class
-        $modal.removeClass('active');
-        // Remove any inline styles that might interfere
-        $modal.css('display', '');
-        // Restore body overflow
-        $('body').css('overflow', '');
-    }
 }
 
 function printDocument() {
