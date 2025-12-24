@@ -10,8 +10,85 @@ $customerRows = [];
 $customerError = null;
 
 try {
-    // Single-file implementation: fetch customers directly from Oracle
-    $sql = "SELECT * FROM bi.ctm_infor_v1";
+    // Fetch customers using raw SQL query
+    $sql = "SELECT
+        br.branchcd ||'-'|| br.phone AS brname,
+        d.acno,
+        CASE d.ctmtype 
+            WHEN 'C' THEN (SELECT CUSTOMERCD FROM o9cbs.D_CUSTOMER CT WHERE CT.CUSTOMERID=d.CUSTOMERID)
+            WHEN 'L' THEN (SELECT BI.LH_F_FORMAT_ACCCODE(l.lkgcd, 'C') FROM o9cbs.D_CTMLKG l WHERE l.lkgid = d.CUSTOMERID)
+            ELSE 'N/A'
+        END AS CTMID,
+        TO_CHAR((d.opndt), 'DD/MM/YY') AS DisburseDt,
+        BI.LH_F_GET_DEPOSITACC_BY_DEFNO(d.defacno) AS DepositAcc,
+        CASE 
+            WHEN INTTNUN='M' THEN (SELECT (b.IFCVAL+b.MARVAL) FROM o9cbs.D_IFCBAL b WHERE b.defacno=d.DEFACNO
+                AND b.IFCCD IN (SELECT ic.IFCCD FROM o9cbs.D_IFCLST ic WHERE ic.IFCTYPE='I' AND ic.IFCSUBTYPE='IN'))/12
+            WHEN (prtn=1 AND prtnun='W' AND inttn=1 AND inttnun='W') THEN ((SELECT (b.IFCVAL+b.MARVAL) FROM o9cbs.D_IFCBAL b WHERE b.defacno=d.DEFACNO
+                AND b.IFCCD IN (SELECT ic.IFCCD FROM o9cbs.D_IFCLST ic WHERE ic.IFCTYPE='I' AND ic.IFCSUBTYPE='IN'))/12)/4
+            WHEN (prtn=2 AND prtnun='W' AND inttn=2 AND inttnun='W') THEN ((SELECT (b.IFCVAL+b.MARVAL) FROM o9cbs.D_IFCBAL b WHERE b.defacno=d.DEFACNO
+                AND b.IFCCD IN (SELECT ic.IFCCD FROM o9cbs.D_IFCLST ic WHERE ic.IFCTYPE='I' AND ic.IFCSUBTYPE='IN'))/12/4)*2
+            WHEN INTTNUN='D' THEN (SELECT (b.IFCVAL+b.MARVAL) FROM o9cbs.D_IFCBAL b WHERE b.defacno=d.DEFACNO
+                AND b.IFCCD IN (SELECT ic.IFCCD FROM o9cbs.D_IFCLST ic WHERE ic.IFCTYPE='I' AND ic.IFCSUBTYPE='IN'))/360
+            ELSE NULL
+        END AS IFCValue,
+        loancycle,
+        (SELECT caption FROM o9cbs.c_cdlist s WHERE s.cdgrp='CRD' AND s.cdname='CRMID' AND s.cdid=d.crmid) AS CoName,
+        BI.LH_F_CUSTOMERNAME_KH(
+            CASE d.ctmtype 
+                WHEN 'C' THEN (SELECT cu1.mname FROM o9cbs.d_customer cu1 WHERE cu1.customerid = d.customerid)
+                WHEN 'L' THEN (SELECT cu1.mname FROM o9cbs.d_customer cu1 WHERE cu1.customerid = (SELECT l.MCUSTOMERID FROM o9cbs.D_CTMLKG l WHERE l.lkgid = d.CUSTOMERID))
+                ELSE 'N/A'
+            END,
+            'C'
+        ) AS CNameKH,
+        BI.LH_F_CUSTOMERNAME_EN(
+            CASE d.ctmtype 
+                WHEN 'C' THEN (SELECT cu1.mname FROM o9cbs.d_customer cu1 WHERE cu1.customerid = d.customerid)
+                WHEN 'L' THEN (SELECT cu1.mname FROM o9cbs.d_customer cu1 WHERE cu1.customerid = (SELECT l.MCUSTOMERID FROM o9cbs.D_CTMLKG l WHERE l.lkgid = d.CUSTOMERID))
+                ELSE 'N/A'
+            END,
+            'C'
+        ) AS CNameEN,
+        BI.LH_F_CUSTOMERNAME_EN(
+            CASE d.ctmtype 
+                WHEN 'C' THEN ''
+                WHEN 'L' THEN (SELECT cu1.mname FROM o9cbs.d_customer cu1 WHERE cu1.customerid =
+                    (SELECT l.DCUSTOMERID FROM o9cbs.D_CTMLKGRL l WHERE l.LKGID = d.CUSTOMERID AND l.status IN('1','2') AND ROWNUM = 1))
+                ELSE 'N/A'
+            END,
+            'C'
+        ) AS COBONameEN,
+        BI.LH_F_CUSTOMERNAME_KH(
+            CASE d.ctmtype 
+                WHEN 'C' THEN ''
+                WHEN 'L' THEN (SELECT cu1.mname FROM o9cbs.d_customer cu1 WHERE cu1.customerid =
+                    (SELECT l.DCUSTOMERID FROM o9cbs.D_CTMLKGRL l WHERE l.LKGID = d.CUSTOMERID AND l.status IN('1','2') AND ROWNUM = 1))
+                ELSE 'N/A'
+            END,
+            'C'
+        ) AS CoboNameKH,
+        TO_CHAR((SELECT MAX(ch.duedt) FROM o9cbs.D_CRSCHD ch WHERE ch.rptype='P' AND ch.defacno=d.defacno), 'DD/MM/YY') AS MaturityDt,
+        CASE 
+            WHEN d.INTMODE IN ('L','C','B') THEN (SELECT COUNT(*) FROM o9cbs.D_CRSCHD ch WHERE ch.defacno=d.defacno AND RPTYPE='P')
+            WHEN d.INTMODE IN ('F') THEN (SELECT COUNT(*) FROM o9cbs.D_CRSCHDEST ch WHERE ch.rptype='E' AND ch.defacno=d.defacno)
+            ELSE NULL
+        END AS Period,
+        CASE 
+            WHEN INTMODE='C' THEN 'Annuity'
+            WHEN INTMODE='F' THEN 'Declining'
+            WHEN INTMODE='L' THEN 'Fix PMT installment'
+            ELSE NULL
+        END AS TYPE_LOAN,
+        (SELECT ifcbal.ifcval+ifcbal.marval FROM o9cbs.d_ifcbal ifcbal WHERE ifcbal.defacno=d.defacno AND ifcbal.ifccd IN
+            (SELECT ifccd FROM o9cbs.d_ifclst WHERE ifctype='I' AND ifcsubtype='IM'))/12 AS AdminFeeRate,
+        d.dbamt,
+        SUBSTR(br.phone,1,11) AS phone,
+        BI.lh_f_customer_address_kh_name(d.CUSTOMERID, d.ctmtype) AS CTMAddress
+    FROM o9cbs.d_credit d
+    INNER JOIN o9cbs.s_branch br ON d.BRANCHID = br.BRANCHID
+    WHERE d.crdsts<>'C' AND d.balance>0 AND d.clsts<>'W'";
+    
     $customerRows = oracleFetchAll($sql);
 } catch (Exception $e) {
     $customerError = $e->getMessage();
