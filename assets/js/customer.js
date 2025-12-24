@@ -12,41 +12,54 @@ function togglePassword() {
     }
 }
 
-// Pagination state for customers table
+// Pagination state for customers table (read from server-rendered data)
 let currentPage = 1;
 let rowsPerPage = 10;
+let totalCount = 0;
+let totalPages = 0;
 
-function getCustomerRows() {
-    const $table = $('#customersTable');
-    if (!$table.length) return [];
-    const $tbody = $table.find('tbody');
-    if (!$tbody.length) return [];
-    return $tbody.find('tr').filter(function() {
-        return $(this).attr('id') !== 'noResultsRow' && !$(this).hasClass('blank-row');
-    }).toArray();
+// Get base URL for navigation
+function getBaseUrl() {
+    return $('body').data('base-url') || '';
 }
 
-function updatePaginationDisplay(showing, total) {
-    $('.pagination-count').text(`${showing} of ${total}`);
+// Navigate to page with pagination parameters
+function navigateToPage(page, limit) {
+    const baseUrl = getBaseUrl();
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', page);
+    url.searchParams.set('limit', limit);
+    window.location.href = url.toString();
 }
 
 // Initialize table using existing server-rendered rows
 function initCustomersTable() {
-    currentPage = 1;
-    filterTable(); // This will call updatePaginationButtons internally
+    const $pagination = $('.pagination-new');
+    
+    if ($pagination.length) {
+        // Get initial state from server-rendered data attributes
+        currentPage = parseInt($pagination.data('current-page')) || 1;
+        rowsPerPage = parseInt($pagination.data('limit')) || 10;
+        totalCount = parseInt($pagination.data('total-count')) || 0;
+        totalPages = parseInt($pagination.data('total-pages')) || 0;
+    }
 }
 
-// Filter table based on search and apply pagination
+// Filter table based on search (client-side filtering for current page only)
 // Search only in: ការិយាល័យ (BRNAME - column 0) and អតិថិជនឈ្មោះ (Customer Name - column 8)
 function filterTable() {
     const searchTerm = $('#searchInput').val().toLowerCase() || '';
     const rows = getCustomerRows();
     const $noResultsRow = $('#noResultsRow');
-    const $tbody = $('#customersTable tbody');
+
+    if (!searchTerm) {
+        // No search term - show all rows
+        $(rows).show();
+        $noResultsRow.hide();
+        return;
+    }
 
     const filtered = rows.filter(function(row) {
-        if (!searchTerm) return true;
-        
         const $row = $(row);
         const $cells = $row.find('td');
         if ($cells.length < 9) return false;
@@ -61,58 +74,14 @@ function filterTable() {
         return brnameText.includes(searchTerm) || customerNameText.includes(searchTerm);
     });
 
-    const total = filtered.length;
-
-    if (total === 0) {
+    if (filtered.length === 0) {
         $(rows).hide();
-        // Remove existing blank rows
-        $tbody.find('tr.blank-row').remove();
         $noResultsRow.show();
-        currentPage = 1;
-        updatePaginationDisplay(0, 0);
-        updatePaginationButtons(1, 1); // Disable both buttons when no results
-        return;
+    } else {
+        $(rows).hide();
+        $(filtered).show();
+        $noResultsRow.hide();
     }
-
-    $noResultsRow.hide();
-
-    const totalPages = Math.max(1, Math.ceil(total / rowsPerPage));
-    if (currentPage > totalPages) currentPage = totalPages;
-    if (currentPage < 1) currentPage = 1;
-
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-
-    // Hide all rows first
-    $(rows).hide();
-
-    // Show filtered rows for current page
-    const visibleRows = [];
-    filtered.forEach(function(row, idx) {
-        if (idx >= start && idx < end) {
-            $(row).show();
-            visibleRows.push(row);
-        }
-    });
-
-    // Remove existing blank rows
-    $tbody.find('tr.blank-row').remove();
-
-    // Add blank rows to fill up to rowsPerPage
-    const visibleCount = visibleRows.length;
-    if (visibleCount < rowsPerPage && $tbody.length) {
-        const blankRowsNeeded = rowsPerPage - visibleCount;
-        for (let i = 0; i < blankRowsNeeded; i++) {
-            const $blankRow = $('<tr>').addClass('blank-row').html('<td colspan="17"></td>');
-            $tbody.append($blankRow);
-        }
-    }
-
-    const showing = Math.min(rowsPerPage, total - start);
-    updatePaginationDisplay(showing, total);
-    
-    // Update button states
-    updatePaginationButtons(currentPage, totalPages);
 }
 
 // Update pagination button states (enable/disable)
@@ -137,35 +106,21 @@ function togglePageRowsDropdown(event) {
     $('.pagination-select-wrapper').toggleClass('active');
 }
 
-// Select page rows
+// Select page rows - reload page with new limit
 function selectPageRows(value, event) {
     if (event) {
         event.stopPropagation();
     }
-    const $selectValue = $('.pagination-select-value');
-    const $dropdown = $('#pageRowsDropdown');
     
-    if (!$dropdown.length) {
-        console.error('Dropdown not found');
+    // Validate value is in allowed list
+    const allowedLimits = [10, 20, 30, 40, 50];
+    if (!allowedLimits.includes(value)) {
+        console.error('Invalid limit value:', value);
         return;
     }
     
-    const $items = $dropdown.find('.pagination-dropdown-item');
-    
-    $selectValue.text(value);
-    
-    // Update active state
-    $items.removeClass('active').filter(function() {
-        return $(this).text().trim() === value.toString();
-    }).addClass('active');
-    
-    // Close dropdown
-    $('.pagination-select-wrapper').removeClass('active');
-    
-    // Update pagination
-    rowsPerPage = value;
-    currentPage = 1;
-    filterTable();
+    // Navigate to page 1 with new limit
+    navigateToPage(1, value);
 }
 
 // Close user menu when clicking outside
@@ -203,32 +158,22 @@ $(document).ready(function() {
     // Apply pagination/filter on server-rendered rows
     initCustomersTable();
 
-    // Wire up previous/next buttons
+    // Wire up previous/next buttons - reload page with new page number
     $('#prevBtn').on('click', function() {
         const $btn = $(this);
         if (!$btn.prop('disabled') && currentPage > 1) {
-            currentPage--;
-            filterTable();
+            navigateToPage(currentPage - 1, rowsPerPage);
         }
     });
 
     $('#nextBtn').on('click', function() {
         const $btn = $(this);
-        const rows = getCustomerRows();
-        const searchTerm = $('#searchInput').val().toLowerCase() || '';
-        const filtered = rows.filter(function(row) {
-            const text = $(row).text().toLowerCase();
-            return !searchTerm || text.includes(searchTerm);
-        });
-        const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
-        
         if (!$btn.prop('disabled') && currentPage < totalPages) {
-            currentPage++;
-            filterTable();
+            navigateToPage(currentPage + 1, rowsPerPage);
         }
     });
     
-    // Wire up search input
+    // Wire up search input - client-side filtering only (for current page)
     $('#searchInput').on('keyup', function() {
         filterTable();
     });

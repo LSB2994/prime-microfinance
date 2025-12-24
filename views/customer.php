@@ -8,10 +8,37 @@ require_once __DIR__ . '/../includes/helpers.php';
 
 $customerRows = [];
 $customerError = null;
+$totalCount = 0;
+$currentPage = 1;
+$limit = 10;
+
+// Get pagination parameters
+$currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+
+// Validate parameters
+if ($currentPage < 1) $currentPage = 1;
+if ($limit < 1) $limit = 10;
+// Only allow valid limit values: 10, 20, 30, 40, 50
+$allowedLimits = [10, 20, 30, 40, 50];
+if (!in_array($limit, $allowedLimits)) $limit = 10;
+
+$offset = ($currentPage - 1) * $limit;
 
 try {
-    // Fetch customers using raw SQL query
-    $sql = "SELECT
+    // First, get total count
+    $countSql = "SELECT COUNT(*) as total
+        FROM o9cbs.d_credit d
+        INNER JOIN o9cbs.s_branch br ON d.BRANCHID = br.BRANCHID
+        WHERE d.crdsts<>'C' AND d.balance>0 AND d.clsts<>'W'";
+    
+    $countResult = oracleFetchAll($countSql);
+    $totalCount = isset($countResult[0]['total']) ? (int)$countResult[0]['total'] : 0;
+    
+    // Fetch customers using raw SQL query with pagination
+    $sql = "SELECT * FROM (
+        SELECT a.*, ROWNUM rnum FROM (
+            SELECT
         br.branchcd ||'-'|| br.phone AS brname,
         d.acno,
         CASE d.ctmtype 
@@ -85,20 +112,32 @@ try {
         d.dbamt,
         SUBSTR(br.phone,1,11) AS phone,
         BI.lh_f_customer_address_kh_name(d.CUSTOMERID, d.ctmtype) AS CTMAddress
-    FROM o9cbs.d_credit d
-    INNER JOIN o9cbs.s_branch br ON d.BRANCHID = br.BRANCHID
-    WHERE d.crdsts<>'C' AND d.balance>0 AND d.clsts<>'W'";
+            FROM o9cbs.d_credit d
+            INNER JOIN o9cbs.s_branch br ON d.BRANCHID = br.BRANCHID
+            WHERE d.crdsts<>'C' AND d.balance>0 AND d.clsts<>'W'
+            ORDER BY d.acno
+        ) a WHERE ROWNUM <= :max_row
+    ) WHERE rnum > :min_row";
     
-    $customerRows = oracleFetchAll($sql);
+    $customerRows = oracleFetchAll($sql, [
+        'max_row' => $offset + $limit,
+        'min_row' => $offset
+    ]);
 } catch (Exception $e) {
     $customerError = $e->getMessage();
     // Log error instead of just displaying
     logError('Failed to fetch customers', [
         'error' => $e->getMessage(),
         'file' => __FILE__,
-        'line' => $e->getLine()
+        'line' => $e->getLine(),
+        'page' => $currentPage,
+        'limit' => $limit
     ]);
 }
+
+// Calculate pagination info
+$totalPages = $totalCount > 0 ? (int)ceil($totalCount / $limit) : 0;
+$showing = count($customerRows);
 
 // Helper functions moved to includes/helpers.php
 // All formatting functions moved to includes/helpers.php
@@ -307,8 +346,12 @@ try {
                     </div>
                 </div>
                 
-                <div class="pagination-new">
-                    <button class="pagination-btn" id="prevBtn">
+                <div class="pagination-new" 
+                     data-current-page="<?php echo $currentPage; ?>" 
+                     data-total-pages="<?php echo $totalPages; ?>" 
+                     data-total-count="<?php echo $totalCount; ?>"
+                     data-limit="<?php echo $limit; ?>">
+                    <button class="pagination-btn" id="prevBtn" <?php echo $currentPage <= 1 ? 'disabled' : ''; ?>>
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12.5 15L7.5 10L12.5 5" stroke="#344054" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -318,7 +361,7 @@ try {
                         <span class="pagination-label">Page rows</span>
                         <div class="pagination-select-wrapper">
                             <button type="button" class="pagination-select-btn">
-                                <span class="pagination-select-value">10</span>
+                                <span class="pagination-select-value"><?php echo $limit; ?></span>
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="pagination-chevron">
                                     <path d="M4 6L8 10L12 6" stroke="#1E1E1E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
@@ -331,9 +374,9 @@ try {
                                 <div class="pagination-dropdown-item" data-value="50">50</div>
                             </div>
                         </div>
-                        <span class="pagination-count">10 of 100</span>
+                        <span class="pagination-count"><?php echo $showing; ?> of <?php echo $totalCount; ?></span>
                     </div>
-                    <button class="pagination-btn" id="nextBtn">
+                    <button class="pagination-btn" id="nextBtn" <?php echo $currentPage >= $totalPages ? 'disabled' : ''; ?>>
                         <span>Next</span>
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M7.5 15L12.5 10L7.5 5" stroke="#344054" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
