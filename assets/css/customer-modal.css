@@ -129,65 +129,96 @@
     justify-content: center;
 }
 
-.modal-qr-frame {
+.qr-card-container {
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.qr-card {
+    background: white;
+    border: 0.17rem solid #E1232E;
+    overflow: hidden;
+    width: 110px;
+    height: 145px;
+    border-radius: 4px;
     position: relative;
-    width: 99px;
-    height: 125px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+.qr-card-header {
+    background: #E1232E;
+    padding: 2.5px;
+    text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 2;
+    overflow: visible;
+    border-radius: 0px;
 }
 
-.qr-frame-bg {
+.qr-card-body::after {
+    content: '';
     position: absolute;
     top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    pointer-events: none;
+    right: 0;
+    border-style: solid;
+    border-width: 3.5px;
+    border-color: #E1232E #E1232E transparent transparent;
 }
 
-.qr-code-overlay {
-    position: absolute;
-    z-index: 2;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    margin-top: 10px; /* Adjust to center in white area of frame */
-}
-
-.qr-code-overlay canvas {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 60px;
-    max-height: 60px;
+.khor-logo {
+    width: 48px;
+    height: 21px;
+    padding: 1px;
     display: block;
-    margin: 0 auto;
 }
 
-.qr-currency-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 3;
-    background: #000000;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
+.qr-card-body {
+    padding: 0 6.875px;
+    text-align: left;
+    position: relative;
+    background: white;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-    color: #ffffff;
-    pointer-events: none;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.qr-card-title {
+    display: block;
+    font-size: 8.25px;
+    font-weight: 500;
+    color: #000;
+    margin: 0;
+    padding-top: 3.5px;
+    padding-left: 3.5px;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.2;
+}
+
+.qr-code-wrapper {
+    position: relative;
+    width: 96px;
+    height: 97px;
+    margin-top: 2.5px;
+    margin-left: auto;
+    margin-right: auto;
+    background: white;
+    display: flex;
+}
+
+.qr-code-wrapper img,
+.qr-code-wrapper canvas {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
 }
 
 
@@ -545,12 +576,17 @@
         background: transparent !important;
     }
 
-    .qr-frame-bg {
+    .qr-card {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
-    .qr-code-overlay canvas {
+    .qr-card-header {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .qr-code-wrapper canvas {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }

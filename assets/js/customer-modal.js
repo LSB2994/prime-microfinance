@@ -401,10 +401,16 @@ function loadQRCollection() {
             console.error('[QR Collection] Error:', error.message);
             console.error('[QR Collection] Full error:', error);
             
-            // Show error in QR display area
-            const $container = $('#qrCodeDisplay');
-            if ($container.length) {
-                $container.html('<div style="color: red; font-size: 10px; text-align: center;">QR Error</div>');
+            // Show error in QR canvas
+            const canvas = document.getElementById('qrCanvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(0, 0, canvas.width || 92, canvas.height || 92);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('QR Error', (canvas.width || 92) / 2, (canvas.height || 92) / 2);
             }
         });
 }
@@ -452,9 +458,15 @@ function generateQRCode(dataBaseUrl) {
                 clearInterval(checkInterval);
                 console.error('[QR Code Generation] Step 4: QRCode library failed to load after 3 seconds');
                 console.error('[QR Code Generation] Step 4: Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('qr')));
-                const $container = $('#qrCodeDisplay');
-                if ($container.length) {
-                    $container.html('<div style="color: red; font-size: 10px;">QR Library Error</div>');
+                const canvas = document.getElementById('qrCanvas');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('QR Error', canvas.width / 2, canvas.height / 2);
                 }
             }
         }, 100);
@@ -467,27 +479,17 @@ function generateQRCode(dataBaseUrl) {
 
 function proceedWithQRGeneration(dataBaseUrl, QRCodeLib) {
     
-    const $container = $('#qrCodeDisplay');
-    if (!$container.length) {
-        console.error('[QR Code Generation] Step 4: QR code container (#qrCodeDisplay) not found');
+    const canvas = document.getElementById('qrCanvas');
+    if (!canvas) {
+        console.error('[QR Code Generation] Step 4: QR code canvas (#qrCanvas) not found');
         return;
     }
     
-    console.log('[QR Code Generation] Step 4: QR code container found');
-    
-    // Clear previous QR code
-    $container.empty();
-    console.log('[QR Code Generation] Step 4: Cleared previous QR code');
+    console.log('[QR Code Generation] Step 4: QR code canvas found');
     
     // Generate QR code
-    const qrSize = 60; // Size to fit in the SVG frame
+    const qrSize = 300; // Higher resolution for better quality
     console.log('[QR Code Generation] Step 4: QR code size:', qrSize);
-    
-    // Create canvas element
-    const canvas = document.createElement('canvas');
-    canvas.id = 'qrCanvas';
-    $container.append(canvas);
-    console.log('[QR Code Generation] Step 4: Canvas element created and appended');
     
     // Generate QR code using QRCode library
     console.log('[QR Code Generation] Step 4: Calling QRCode.toCanvas');
@@ -498,7 +500,7 @@ function proceedWithQRGeneration(dataBaseUrl, QRCodeLib) {
             dark: '#000000',
             light: '#FFFFFF'
         },
-        errorCorrectionLevel: 'M'
+        errorCorrectionLevel: 'H'
     });
     
     QRCodeLib.toCanvas(canvas, dataBaseUrl, {
@@ -508,24 +510,65 @@ function proceedWithQRGeneration(dataBaseUrl, QRCodeLib) {
             dark: '#000000',
             light: '#FFFFFF'
         },
-        errorCorrectionLevel: 'M'
+        errorCorrectionLevel: 'H'
     }, function(error) {
         if (error) {
             console.error('[QR Code Generation] Step 4: Error generating QR code');
             console.error('[QR Code Generation] Step 4: Error details:', error);
             console.error('[QR Code Generation] Step 4: Error message:', error.message);
             console.error('[QR Code Generation] Step 4: Error stack:', error.stack);
-            $container.html('<div style="color: red; font-size: 10px;">QR Error</div>');
         } else {
             console.log('[QR Code Generation] Step 4: QR code generated successfully');
             console.log('[QR Code Generation] Step 4: QR code generation completed');
             
-            // Update currency icon
-            const $currencyIcon = $('#qrCurrencyIcon');
-            if ($currencyIcon.length) {
-                $currencyIcon.text(currentCurrency === 'USD' ? '$' : '៛');
-                console.log('[QR Code Generation] Step 4: Currency icon updated:', currentCurrency);
+            // Get context after QR code is generated
+            const ctx = canvas.getContext('2d');
+            
+            // Add USD currency icon to center of QR code
+            function addCurrencyIcon(currencySymbol) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const iconRadius = 15; // Radius of the inner black circle (smaller)
+                const padding = 6; // White padding around icon (outer white circle) (smaller)
+                const borderWidth = 1.5; // Thin black border width
+                
+                // Draw white outer circle (background/padding)
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, iconRadius + padding, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Draw thin black circular border
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = borderWidth;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, iconRadius + padding, 0, 2 * Math.PI);
+                ctx.stroke();
+                
+                // Draw solid black inner circle
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, iconRadius, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Draw currency symbol in white, centered (bigger font)
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = `bold ${iconRadius * 1.6}px Arial, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(currencySymbol, centerX, centerY);
             }
+            
+            // Add currency icon based on current currency
+            const currencySymbol = currentCurrency === 'USD' ? '$' : '៛';
+            addCurrencyIcon(currencySymbol);
+            console.log('[QR Code Generation] Step 4: Currency icon added:', currencySymbol);
+            
+            // Set canvas size after everything is drawn
+            $(canvas).css({
+                'width': '92px',
+                'height': '92px'
+            });
         }
     });
 }

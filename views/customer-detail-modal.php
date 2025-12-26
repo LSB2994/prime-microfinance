@@ -21,11 +21,17 @@
                             </div>
                         </div>
                         <div class="modal-qr-section">
-                            <div class="modal-qr-frame" id="qrCodeContainer">
-                                <img src="<?php echo baseUrl('/assets/images/svg/khqr_frame.svg'); ?>" alt="KHQR Frame" class="qr-frame-bg">
-                                <canvas id="qrCodeCanvas" style="display: none;"></canvas>
-                                <div id="qrCodeDisplay" class="qr-code-overlay">
-                                    <div class="qr-currency-icon" id="qrCurrencyIcon">$</div>
+                            <div class="qr-card-container">
+                                <div class="qr-card">
+                                    <div class="qr-card-header">
+                                        <img src="<?php echo baseUrl('/assets/images/KHQR_Logo.png'); ?>" alt="KHOR" class="khor-logo">
+                                    </div>
+                                    <div class="qr-card-body">
+                                        <div class="qr-card-title">Prime Microfinance</div>
+                                        <div class="qr-code-wrapper">
+                                            <canvas id="qrCanvas"></canvas>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
