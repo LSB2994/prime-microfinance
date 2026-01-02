@@ -77,7 +77,7 @@
 
 .modal-document-content {
     background: white;
-    max-width: 210mm;
+    width: 210mm;
     margin: 0 auto;
     padding: 0;
     font-family: 'Inter', 'Kantumruy Pro', 'Noto Sans KR', 'Dotum', 'Segoe UI', sans-serif;
@@ -107,7 +107,7 @@
 
 .modal-logo {
     width: auto;
-    height: 80px;
+    height: 100px;
     display: block;
     object-fit: contain;
 }
@@ -232,8 +232,22 @@
 }
 
 .modal-info-section {
-    padding: 15px 30px 0px 15px;
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    padding: 0px 15px;
 }
+
+.modal-info-section-left {
+    width: 100%;
+    display: block;
+}
+
+.modal-info-section-right {
+    display: flex;
+    align-items: flex-start;
+}
+
 
 .modal-info-table {
     width: 100%;
@@ -258,13 +272,13 @@
 .modal-info-label {
     font-weight: normal;
     color: #1e293b;
-    font-size: 11px;
+    font-size: 12px;
     white-space: nowrap;
 }
 
 .modal-info-value {
     color: #475569;
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .modal-font-weight-bold {
@@ -482,7 +496,7 @@
 
     .modal-logo {
         width: auto;
-        height: 72px !important;
+        height: 100px !important;
         display: block;
         object-fit: contain;
     }
@@ -523,8 +537,51 @@
     }
 
     .modal-info-section {
-        padding: 15px 30px 0px 15px !important;
-        page-break-inside: avoid;
+        display: flex !important;
+        justify-content: space-evenly !important;
+        width: 100% !important;
+    }
+
+    .modal-info-section-left {
+        width: 100% !important;
+        display: block !important;
+    }
+
+    .modal-info-section-right {
+        display: flex !important;
+        align-items: flex-start !important;
+    }
+
+    .modal-info-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+    }
+    
+    .modal-info-table thead {
+        display: none;
+    }
+    
+    .modal-info-table tbody tr {
+        border: none;
+    }
+    
+    .modal-info-table td {
+        padding: 4px 8px;
+        border: none;
+        vertical-align: top;
+    }
+    
+    .modal-info-label {
+        font-weight: normal;
+        color: #1e293b;
+        font-size: 12px !important;
+        white-space: nowrap;
+    }
+    
+    .modal-info-value {
+        color: #475569;
+        font-size: 12px !important;
     }
 
     .modal-table-section {
@@ -613,9 +670,9 @@
     }
 
     @page {
-        margin: 0.5cm;
-        size: A4;
-    }
+        size: A4 portrait;
+        margin: 0;
+    } 
 
     .modal-header-content,
     .modal-document-title,

@@ -20,7 +20,7 @@
                                 <img src="<?php echo baseUrl('/assets/images/main_logo.png'); ?>" alt="PRIME MF Logo">
                             </div>
                         </div>
-                        <div class="modal-qr-section">
+                        <!-- <div class="modal-qr-section">
                             <div class="qr-card-container">
                                 <div class="qr-card">
                                     <div class="qr-card-header">
@@ -34,35 +34,49 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                     <div class="modal-document-title">តារាងកាលវិភាគសងប្រាក់</div>
                 </div>
 
                 <div class="modal-info-section">
-                    <table class="modal-info-table">
-                        <colgroup>
-                            <col style="width: 10%;">
-                            <col style="width: 22%;">
-                            <col style="width: 10%;">
-                            <col style="width: 0px;">
-                            <col style="width: 13%;">
-                            <col style="width: 15%;">
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="modalInfoTableBody">
-                            <!-- Populated by JavaScript -->
-                        </tbody>
-                    </table>
+                    <div class="modal-info-section-left">
+                        <table class="modal-info-table">
+                            <colgroup>
+                                <col style="width: 1%;">
+                                <col style="width: 2%;">
+                                <col style="width: 1%;">
+                                <col style="width: 25%;">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalInfoTableBody">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-info-section-right">
+                        <!-- KHQR -->
+                        <div class="qr-card-container">
+                            <div class="qr-card">
+                                <div class="qr-card-header">
+                                    <img src="<?php echo baseUrl('/assets/images/KHQR_Logo.png'); ?>" alt="KHOR" class="khor-logo">
+                                </div>
+                                <div class="qr-card-body">
+                                    <div class="qr-card-title">Prime Microfinance</div>
+                                    <div class="qr-code-wrapper">
+                                        <canvas id="qrCanvas"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-table-section">

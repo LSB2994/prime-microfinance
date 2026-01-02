@@ -300,7 +300,7 @@ try {
             'dueno' => $row['dueno'] ?? '',
             'dayname' => $row['dayname'] ?? '',
             'duedate' => formatScheduleDateForJson($row['duedate'] ?? ''),
-            'period' => $row['period'] ?? '',
+            'period' => $row['days'] ?? '',
             'principal' => $row['principal'] ?? '',
             'interest' => $row['interest'] ?? '',
             'totalamount' => $row['totalamount'] ?? '',

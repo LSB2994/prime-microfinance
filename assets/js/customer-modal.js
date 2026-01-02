@@ -113,51 +113,50 @@ function populateModalInfo(data) {
         <tr>
             <td class="modal-info-label">ការិយាល័យ</td>
             <td class="modal-info-value">៖ ${data.brname || ''}</td>
-            <td colspan="2" class="modal-info-label">កម្ចីរគ្គទី</td>
-            <td colspan="4" class="modal-info-value">៖ ${data.loancycle || ''} / មន្ត្រីឥណទាន / ${data.coname || ''}${data.phone ? '(' + formatPhone(data.phone) + ')' : ''}</td>
+            <td class="modal-info-label">កម្ចីរគ្គទី</td>
+            <td class="modal-info-value">៖ ${data.loancycle || ''} / មន្ត្រីឥណទាន / ${data.coname || ''}</td>
         </tr>
         <tr>
             <td class="modal-info-label modal-font-weight-bold">គណនីឥណទាន</td>
             <td class="modal-info-value modal-font-weight-bold">៖ ${data.acno || ''}</td>
-            <td colspan="2" class="modal-info-label modal-font-weight-bold">អតិថិជនឈ្មោះ</td>
-            <td colspan="4" class="modal-info-value modal-font-weight-bold">៖ ${data.customerName || ''}</td>
+            <td class="modal-info-label modal-font-weight-bold">អតិថិជនឈ្មោះ</td>
+            <td class="modal-info-value modal-font-weight-bold">៖ ${data.customerName || ''}</td>
         </tr>
         <tr>
             <td class="modal-info-label modal-font-weight-bold">គណនីអតិថិជន</td>
             <td class="modal-info-value modal-font-weight-bold">៖ ${data.ctmid || ''}</td>
-            <td colspan="2" class="modal-info-label">អ្នករួមខ្ចីឈ្មោះ</td>
-            <td colspan="2" class="modal-info-value">៖ ${data.coborrowerName || ''}</td>
+            <td class="modal-info-label">អ្នករួមខ្ចីឈ្មោះ</td>
+            <td class="modal-info-value">៖ ${data.coborrowerName || ''}</td>
         </tr>
         <tr>
             <td class="modal-info-label">កាលបរិច្ឆេទផ្តល់កម្ចី</td>
             <td class="modal-info-value">៖ ${formatDate(data.disbursedt)}</td>
-            <td colspan="2" class="modal-info-label">កាលបរិច្ឆេទបញ្ចប់នៃកម្ចី</td>
-            <td colspan="2" class="modal-info-value">៖ ${formatDate(data.maturitydt)}</td>
+            <td class="modal-info-label">កាលបរិច្ឆេទបញ្ចប់នៃកម្ចី</td>
+            <td class="modal-info-value">៖ ${formatDate(data.maturitydt)}</td>
         </tr>
         <tr>
             <td class="modal-info-label">លេខគណនីសន្សំ</td>
             <td class="modal-info-value">៖ ${data.depositacc || ''}</td>
             <td class="modal-info-label">រយៈពេលខ្លី</td>
-            <td class="modal-info-label"></td>
             <td class="modal-info-value">៖ ${formatPeriod(data.period)}</td>
-            <td class="modal-info-label">ចំនួនទឹកប្រាក់</td>
-            <td class="modal-info-value modal-font-weight-bold">៖ ${formatAmount(data.dbamt)} ដុល្លារ</td>
         </tr>
         <tr>
             <td class="modal-info-label">អត្រាការប្រាក់</td>
             <td class="modal-info-value">៖ ${formatInterestRate(data.ifcvalue)}</td>
             <td class="modal-info-label">របៀបសងប្រាក់</td>
-            <td class="modal-info-label"></td>
             <td class="modal-info-value">៖ ${data.typeLoan || 'QR Payment'}</td>
-            <td class="modal-info-label">លេខទូរស័ព្ទ</td>
-            <td class="modal-info-value">៖ ${formatPhone(data.phone)}</td>
         </tr>
         <tr>
-            <td colspan="2"></td>
+            <td class="modal-info-label">ចំនួនទឹកប្រាក់</td>
+            <td class="modal-info-value">៖ ${formatAmount(data.dbamt)} ដុល្លារ</td>
             <td class="modal-info-label">សេវាប្រចាំខែ</td>
-            <td class="modal-info-label"></td>
             <td class="modal-info-value">៖ ${formatServiceFee(data.adminfeerate)}</td>
-            <td colspan="2"></td>
+        </tr>
+        <tr>
+            <td class="modal-info-label">លេខទូរស័ព្ទ</td>
+            <td class="modal-info-value">៖ ${formatPhone(data.phone)}</td>
+            <td class="modal-info-label"></td>
+            <td class="modal-info-value"></td>
         </tr>
         <tr>
             <td class="modal-info-label">អាស័យដ្ឋានអ្នកខ្ចី</td>
@@ -200,7 +199,7 @@ function loadRepaymentSchedule(acno) {
 
 // Configuration constants
 const WEBILL_CONFIG = {
-    BASE_URL: 'https://apitest-va.webill365.com/kh',
+    BASE_URL: 'https://test-va.webill365.com/kh',
     CLIENT_ID: 'aec6fef2e90e26975ec95abd18b1fb77',
     CLIENT_SECRET: '13fd6fea8da76e2cde034590b6c2c55a',
     TOKEN_ENDPOINT: '/api/wbi/client/v1/auth/token',
@@ -374,9 +373,9 @@ function loadQRCollection() {
     // Prepare QR collection data
     const qrCollectionData = {
         payer_name: randomPayerName,
-        parent_account_no: '1120000106664',
+        parent_account_no: '1120000805758',
         payment_type: '0',
-        currency_code: 'USD',
+        currency_code: 'KHR',
         amount: 0,
         remark: '',
         khqr_name: '',
