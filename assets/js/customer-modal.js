@@ -199,9 +199,9 @@ function loadRepaymentSchedule(acno) {
 
 // Configuration constants
 const WEBILL_CONFIG = {
-    BASE_URL: 'https://test-va.webill365.com/kh',
-    CLIENT_ID: 'aec6fef2e90e26975ec95abd18b1fb77',
-    CLIENT_SECRET: '13fd6fea8da76e2cde034590b6c2c55a',
+    BASE_URL: 'https://apitest-va.webill365.com/kh',
+    CLIENT_ID: 'dabc7ebaccb8a576946b86a0edf59266',
+    CLIENT_SECRET: '87f6e4195b12c00abd6e1156950d6e07',
     TOKEN_ENDPOINT: '/api/wbi/client/v1/auth/token',
     QR_COLLECTION_ENDPOINT: '/api/wbi/client/v1/qr-collections',
     REQUEST_TIMEOUT: 30000, // 30 seconds

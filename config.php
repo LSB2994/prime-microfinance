@@ -48,9 +48,9 @@ define('INCLUDES_PATH', ROOT_PATH . '/includes');
 define('ENCRYPTION_KEY', 'your-secret-key-change-this-in-production');
 
 // Webill API Configuration
-define('WEBILL_BASE_URL', 'https://test-va.webill365.com/kh');
-define('WEBILL_CLIENT_ID', '63212214bcb51522cc2af4304cfc402b');
-define('WEBILL_CLIENT_SECRET', 'ec68a92ad5489ff7f13888dbcfc6d793');
+define('WEBILL_BASE_URL', 'https://apitest-va.webill365.com/kh');
+define('WEBILL_CLIENT_ID', 'dabc7ebaccb8a576946b86a0edf59266');
+define('WEBILL_CLIENT_SECRET', '87f6e4195b12c00abd6e1156950d6e07');
 
 // Environment detection
 // Set via environment variable: export APP_ENV=production

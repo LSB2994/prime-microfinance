@@ -58,7 +58,7 @@
 
 .modal-btn-icon:hover:not(.modal-btn-close) {
     background: #f1f5f9;
-    color: #1e293b;
+    color: #000000;
 }
 
 .modal-btn-close {
@@ -271,13 +271,13 @@
 
 .modal-info-label {
     font-weight: normal;
-    color: #1e293b;
+    color: #000000;
     font-size: 12px;
     white-space: nowrap;
 }
 
 .modal-info-value {
-    color: #475569;
+    color: #000000;
     font-size: 12px;
 }
 
@@ -302,14 +302,14 @@
     text-align: center;
     border: 1px solid #000000;
     font-weight: 700;
-    color: #1e293b;
+    color: #000000;
     font-size: 11px;
 }
 
 .repayment-table td {
     padding: 4px 8px;
     border: 1px solid #000000;
-    color: #475569;
+    color: #000000;
     font-size: 11px;
 }
 
@@ -323,7 +323,7 @@
 
 .repayment-table .bold {
     font-weight: 700;
-    color: #1e293b;
+    color: #000000;
 }
 
 .total-row {
@@ -333,7 +333,7 @@
 
 .total-row td {
     font-weight: 700;
-    color: #1e293b;
+    color: #000000;
 }
 
 .modal-footer-content {
@@ -341,7 +341,7 @@
 }
 
 .modal-footer-date {
-    margin-bottom: 15px;
+    margin-bottom: 30px;
     font-weight: normal;
     font-size: 12px;
 }
@@ -365,13 +365,13 @@
 .modal-signature-label {
     font-weight: normal;
     margin-bottom: 6px;
-    color: #1e293b;
+    color: #000000;
     font-size: 12px;
 }
 
 .modal-signature-name {
     font-weight: normal;
-    color: #475569;
+    color: #000000;
     font-size: 12px;
     margin-top: 4px;
 }
@@ -397,7 +397,7 @@
 .modal-notes-title {
     font-weight: normal;
     margin-bottom: 6px;
-    color: #1e293b;
+    color: #000000;
     font-size: 12px;
 }
 
@@ -410,7 +410,7 @@
     margin-bottom: 4px;
     padding-left: 0;
     position: relative;
-    color: #475569;
+    color: #000000;
     line-height: 1.7;
     font-size: 12px;
 }
@@ -574,13 +574,13 @@
     
     .modal-info-label {
         font-weight: normal;
-        color: #1e293b;
+        color: #000000;
         font-size: 12px !important;
         white-space: nowrap;
     }
     
     .modal-info-value {
-        color: #475569;
+        color: #000000;
         font-size: 12px !important;
     }
 
@@ -598,7 +598,7 @@
         padding: 4px 8px !important;
         border: 1px solid #000000 !important;
         background: white !important;
-        color: #475569 !important;
+        color: #000000 !important;
         font-size: 11px !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -606,7 +606,7 @@
 
     .repayment-table th {
         background: #00000033 !important;
-        color: #1e293b !important;
+        color: #000000 !important;
         font-weight: 700 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -621,7 +621,7 @@
     .total-row td {
         background: transparent !important;
         font-weight: 700 !important;
-        color: #1e293b !important;
+        color: #000000 !important;
     }
 
     .modal-footer-content {
@@ -671,7 +671,7 @@
 
     @page {
         size: A4 portrait;
-        margin: 0;
+        margin: 0.5cm 0cm;
     } 
 
     .modal-header-content,

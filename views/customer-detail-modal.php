@@ -116,7 +116,7 @@
                             <div class="modal-signature-label" style="margin-top: 8px;">រៀបចំដោយ៖</div>
                         </div>
                         <div class="modal-signature-block right">
-                            <div class="modal-signature-label" style="margin-bottom: 20px !important;">ស្នាមមេដៃអ្នកទទួលប្រាក់</div>
+                            <div class="modal-signature-label" style="margin-bottom: 75px !important;">ស្នាមមេដៃអ្នកទទួលប្រាក់</div>
                             <div class="modal-signature-name" id="modalSignatureName"></div>
                         </div>
                     </div>
