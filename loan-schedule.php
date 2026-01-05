@@ -270,8 +270,8 @@ try {
     
     // Calculate summary totals
     foreach ($scheduleRows as $row) {
-        if (isset($row['period']) && is_numeric($row['period'])) {
-            $summary['totalDays'] += (int)$row['period'];
+        if (isset($row['days']) && is_numeric($row['days'])) {
+            $summary['totalDays'] += (int)$row['days'];
         }
         if (isset($row['principal']) && is_numeric($row['principal'])) {
             $summary['totalPrincipal'] += (float)$row['principal'];
