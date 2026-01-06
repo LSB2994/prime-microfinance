@@ -43,10 +43,10 @@
                     <div class="modal-info-section-left">
                         <table class="modal-info-table">
                             <colgroup>
-                                <col style="width: 1%;">
-                                <col style="width: 2%;">
-                                <col style="width: 1%;">
-                                <col style="width: 25%;">
+                                <col style="width: 50px;">
+                                <col style="width: 100px;">
+                                <col style="width: 50px;">
+                                <col style="width: 200px;">
                             </colgroup>
                             <thead>
                                 <tr>
@@ -69,7 +69,7 @@
                                     <img src="<?php echo baseUrl('/assets/images/KHQR_Logo.png'); ?>" alt="KHOR" class="khor-logo">
                                 </div>
                                 <div class="qr-card-body">
-                                    <div class="qr-card-title">Prime Microfinance</div>
+                                    <div class="qr-card-title">Prime MF Microfinance</div>
                                     <div class="qr-code-wrapper">
                                         <canvas id="qrCanvas"></canvas>
                                     </div>
@@ -129,9 +129,9 @@
                             <li>- ការមិនគោរពតាមកិច្ចសន្យា គ្រឹះស្ថានមីក្រូហិរញ្ញវត្ថុ ប្រាយម៍ អិមអេហ្វ អិលធីឌី នឹងចាត់វិធានការតាមផ្លូវច្បាប់</li>
                             <li>- អតិថិជនត្រូវមកសងប្រាក់អោយបានទៀងទាត់តាមតារាងកាលវិភាគសងប្រាក់ដែលបានចែកជូនកំណត់ទុក</li>
                             <li>- ការទទួលប្រាក់ ៖ ត្រូវមកបង់ប្រាក់នៅការិយាល័យផ្ទាល់ ពីម៉ោង ៨: ០០ ព្រឹក ដល់ ៣: ៣០ រសៀល
-                            </br>និងអាចបង់ប្រាក់តាមរយៈភ្នាក់ងារទ្រូម៉ាន់នី (​​True money) ដែលនៅជិតលោកអ្នក លេខកូដស្ថាប័ន (2031)
-                            </br>និងតាមរយៈវីង (wing) លេខកូដស្ថាប័នសម្រាប់តារាងបង់ប្រាក់ជាដុល្លារ USD (6162)
-                            និងតារាងបង់ប្រាក់ជាខ្មែរ KHR (6163)</li>
+                            </br>និងអាចបង់ប្រាក់តាមរយៈភ្នាក់ងារទ្រូម៉ាន់នី <i>(​​True money)</i> ដែលនៅជិតលោកអ្នក លេខកូដស្ថាប័ន <i>(2031)</i>
+                            </br>និងតាមរយៈវីង <i>(wing)</i> លេខកូដស្ថាប័នសម្រាប់តារាងបង់ប្រាក់ជាដុល្លារ <i>USD (6162)</i>
+                            និងតារាងបង់ប្រាក់ជាខ្មែរ <i>KHR (6163)</i></li>
                             <li>- រាល់ការសងប្រាក់ចំថ្ងៃ ឈប់សំរាក ថ្ងៃសៅរ៍អាទិត្យ រឺ ថ្ងៃបុណ្យត្រូវមកសងមួយថ្ងៃ មុនកាលកំណត់ត្រូវសង</li>
                         </ul>
                     </div>

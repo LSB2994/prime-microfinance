@@ -113,7 +113,7 @@ function populateModalInfo(data) {
         <tr>
             <td class="modal-info-label">ការិយាល័យ</td>
             <td class="modal-info-value">៖ ${data.brname || ''}</td>
-            <td class="modal-info-label">កម្ចីរគ្គទី</td>
+            <td class="modal-info-label">កម្ចីវគ្គទី</td>
             <td class="modal-info-value">៖ ${data.loancycle || ''} / មន្ត្រីឥណទាន / ${data.coname || ''}</td>
         </tr>
         <tr>

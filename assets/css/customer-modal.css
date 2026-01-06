@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Kantumruy+Pro:wght@400;500;600&family=Noto+Serif+Khmer:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&family=Nunito:wght@400&family=Moul&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Content:wght@400;500;600&family=Noto+Serif+Khmer:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&family=Nunito:wght@400&family=Moul&display=swap');
 
 /* Customer Detail Modal Styles */
 .modal-overlay {
@@ -80,7 +80,7 @@
     width: 210mm;
     margin: 0 auto;
     padding: 0;
-    font-family: 'Inter', 'Kantumruy Pro', 'Noto Sans KR', 'Dotum', 'Segoe UI', sans-serif;
+    font-family: 'Inter', 'Content', 'Noto Sans KR', 'Dotum', 'Segoe UI', sans-serif;
 }
 
 .modal-header-content {
@@ -190,12 +190,12 @@
 
 .qr-card-title {
     display: block;
-    font-size: 8.25px;
+    font-size: 8px;
     font-weight: 500;
     color: #000;
     margin: 0;
     padding-top: 3.5px;
-    padding-left: 3.5px;
+    padding-left: 0px;
     font-family: 'Inter', sans-serif;
     line-height: 1.2;
 }
@@ -228,7 +228,7 @@
     font-size: 21px;
     font-weight: normal;
     margin: 8px 0;
-    font-family: 'Moul', 'Kantumruy Pro', 'Inter', sans-serif;
+    font-family: 'Moul', 'Content', 'Inter', sans-serif;
 }
 
 .modal-info-section {
@@ -303,14 +303,14 @@
     border: 1px solid #000000;
     font-weight: 700;
     color: #000000;
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .repayment-table td {
     padding: 4px 8px;
     border: 1px solid #000000;
     color: #000000;
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .repayment-table .text-center {
@@ -411,7 +411,7 @@
     padding-left: 0;
     position: relative;
     color: #000000;
-    line-height: 1.7;
+    line-height: 2;
     font-size: 12px;
 }
 
@@ -530,7 +530,7 @@
     .modal-document-title {
         margin: 8px 0 !important;
         page-break-after: avoid;
-        font-family: 'Moul', 'Kantumruy Pro', 'Inter', sans-serif !important;
+        font-family: 'Moul', 'Content', 'Inter', sans-serif !important;
         color: #1521BA !important;
         font-size: 21px !important;
         font-weight: normal !important;
@@ -599,7 +599,7 @@
         border: 1px solid #000000 !important;
         background: white !important;
         color: #000000 !important;
-        font-size: 11px !important;
+        font-size: 12px !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
