@@ -981,7 +981,7 @@ body {
 
 .customers-table-new td {
     display: table-cell;
-    padding: 10px;
+    padding: 18px 10px !important;
     font-family: 'Inter', 'Content', sans-serif;
     font-weight: 400;
     font-size: 14px;
