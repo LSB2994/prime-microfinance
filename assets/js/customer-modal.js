@@ -137,7 +137,7 @@ function populateModalInfo(data) {
         <tr>
             <td class="modal-info-label">លេខគណនីសន្សំ</td>
             <td class="modal-info-value">៖ ${data.depositacc || ''}</td>
-            <td class="modal-info-label">រយៈពេលខ្លី</td>
+            <td class="modal-info-label">រយះពេលខ្ចី</td>
             <td class="modal-info-value">៖ ${formatPeriod(data.period)}</td>
         </tr>
         <tr>
